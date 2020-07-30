@@ -10,7 +10,29 @@
 	],
 	"settings": {
 		"files.associations": {
-			"functional": "cpp"
+			"functional": "cpp",
+			"cstdarg": "cpp",
+			"cstdlib": "cpp",
+			"exception": "cpp",
+			"initializer_list": "cpp",
+			"limits": "cpp",
+			"new": "cpp",
+			"array": "cpp",
+			"*.tcc": "cpp",
+			"cctype": "cpp",
+			"cmath": "cpp",
+			"cstdint": "cpp",
+			"cstdio": "cpp",
+			"cstring": "cpp",
+			"cwchar": "cpp",
+			"vector": "cpp",
+			"algorithm": "cpp",
+			"type_traits": "cpp",
+			"iosfwd": "cpp",
+			"numeric": "cpp",
+			"stdexcept": "cpp",
+			"cinttypes": "cpp",
+			"utility": "cpp"
 		}
 	}
 }
