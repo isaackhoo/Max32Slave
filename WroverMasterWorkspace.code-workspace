@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "..\\WroverMaster"
+		},
+		{
+			"name": "Max32Slave",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"functional": "cpp"
+		}
+	}
+}
