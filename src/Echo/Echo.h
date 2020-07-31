@@ -4,6 +4,7 @@
 #define ECHO_H
 
 #include "common.h"
+#include "Echo/Constants.h"
 #include "Logger/Logger.h"
 #include "Master/Master.h"
 
@@ -11,20 +12,7 @@
 class Logger;
 class Master;
 
-const unsigned int DEFAULT_ECHO_TIMEOUT = 1000;
-const unsigned int DEFAULT_MAX_DROPS = 3;
-struct EchoNode
-{
-    String uuid;
-    unsigned int timeSent;
-    int droppedEchoCounter;
-
-    int messageLength;
-    String message;
-
-    EchoNode *prev;
-    EchoNode *next;
-};
+using namespace EchoConstants;
 
 class Echo
 {

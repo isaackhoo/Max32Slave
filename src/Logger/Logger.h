@@ -9,22 +9,29 @@
 
 // forward declaration
 class Master;
+class Logger;
+
+// -----------------------
+// Logger Public Variables
+// -----------------------
+extern Logger *logger;
 
 class Logger
 {
-    private:
-        SerialComms *serial;
-        Master *context;
+private:
+    SerialComms *serial;
+    Master *masterInstance;
 
-    public:
-        Logger();
-        void init(HardwareSerial *);
+public:
+    Logger();
+    void init(HardwareSerial *);
 
-        void log(String);
-        void logError(String);
+    void log(String, bool);
+    void log(String);
+    void logError(String, bool);
+    void logError(String);
 
-        void attachContext(Master *);
+    void attachContext(Master *);
 };
-extern Logger *logger;
 
 #endif

@@ -1,5 +1,14 @@
 #include "Echo.h"
 
+// --------------------------
+// Echo Constants Definition
+// --------------------------
+const unsigned int EchoConstants::DEFAULT_ECHO_TIMEOUT = 1000 * 5;
+const unsigned int EchoConstants::DEFAULT_MAX_DROPS = 3;
+
+// --------------------------
+// Echo Public Methods
+// --------------------------
 Echo::Echo()
 {
     this->HEAD = NULL;
@@ -164,7 +173,7 @@ void Echo::run()
         expiredStr += ", message: ";
         expiredStr += expiredNode->message;
         if (this->logContext != NULL)
-            this->logContext->logError(expiredStr);
+            this->logContext->logError(expiredStr, false);
 
         // check if node has overrun number of retries
         if (expiredNode->droppedEchoCounter < this->maxDrops)
@@ -173,11 +182,10 @@ void Echo::run()
             ++expiredNode->droppedEchoCounter;
             String resendingLog = "Resending uuid " + expiredNode->uuid;
             if (this->logContext != NULL)
-                this->logContext->logError(resendingLog);
+                this->logContext->logError(resendingLog, false);
             // resend the message
             if (this->masterContext != NULL)
                 this->masterContext->send(expiredNode->message, true, false);
-            //sender(expiredNode->message, true, false);
             // update dropped node sent millis
             expiredNode->timeSent = millis();
         }
@@ -187,8 +195,7 @@ void Echo::run()
             this->removeEcho(expiredNode->uuid);
             String maxDropLog = "No echo received for " + expiredNode->uuid + ", message: " + expiredNode->message;
             if (this->logContext != NULL)
-                this->logContext->logError(maxDropLog);
-            //logger(maxDropLog);
+                this->logContext->logError(maxDropLog, false);
         }
     }
 };

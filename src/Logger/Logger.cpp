@@ -1,9 +1,9 @@
 #include "Logger.h"
 
+// -----------------------
+// Logger Public Variables
+// -----------------------
 Logger *logger = new Logger();
-// --------------------------
-// Logger Private Methods
-// --------------------------
 
 // --------------------------
 // Logger Public Methods
@@ -13,26 +13,38 @@ Logger::Logger(){};
 void Logger::init(HardwareSerial *ss)
 {
     this->serial = new SerialComms(ss);
-    
-    this->context = NULL;
+    this->masterInstance = NULL;
 }
+
+void Logger::log(String log, bool forwardToMaster)
+{
+    this->serial->send(log + "\n");
+    if (forwardToMaster && this->masterInstance != NULL)
+    {
+        this->masterInstance->logToMasterChip(log);
+    };
+};
 
 void Logger::log(String log)
 {
-    this->serial->send(log);
-    if (this->context != NULL)
-        this->context->logToMasterChip(log);
+    this->log(log, true);
+};
+
+void Logger::logError(String err, bool forwardToMaster)
+{
+    this->serial->send(err + "\n");
+    if (forwardToMaster && this->masterInstance != NULL)
+    {
+        this->masterInstance->logErrorToMasterChip(err);
+    };
 };
 
 void Logger::logError(String err)
 {
-    this->serial->send(err);
-    if (this->context != NULL)
-        this->context->logErrorToMasterChip(err);
+    this->logError(err, true);
 };
-
 
 void Logger::attachContext(Master *ctxt)
 {
-    this->context = ctxt;
+    this->masterInstance = ctxt;
 };
