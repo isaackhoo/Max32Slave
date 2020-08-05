@@ -16,6 +16,12 @@ class HBridge
 
     public:
         HBridge(int, int);
+
+    public:
+        void switchHL();
+        void switchLH();
+        void switchHH();
+        void switchLL();
 };
 
 #endif
