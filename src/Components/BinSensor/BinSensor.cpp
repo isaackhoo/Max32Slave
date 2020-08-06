@@ -3,4 +3,4 @@
 // ------------------------
 // BinSensor Public Methods
 // ------------------------
-BinSensor::BinSensor(int dPin, int aPin) : Power(dPin), AnalogComms(aPin){};
+BinSensor::BinSensor(int aPin) : AnalogComms(aPin){};

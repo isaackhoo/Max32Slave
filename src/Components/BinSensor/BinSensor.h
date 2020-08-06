@@ -10,10 +10,11 @@
 class Power;
 class AnalogComms;
 
-class BinSensor : public Power, public AnalogComms
+class BinSensor : public AnalogComms
 {
     public:
-        BinSensor(int, int);
+        BinSensor(int);
+
 };
 
 #endif

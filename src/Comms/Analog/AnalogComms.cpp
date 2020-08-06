@@ -12,5 +12,7 @@ double AnalogComms::aRead()
 {
     double val = 0;
 
+    val = analogRead(this->pin);
+
     return val;
 };
