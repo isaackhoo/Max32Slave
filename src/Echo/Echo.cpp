@@ -1,211 +1,219 @@
-#include "Echo.h"
+#include "Echo/Echo.h"
 
-// --------------------------
-// Echo Constants Definition
-// --------------------------
-const unsigned int EchoConstants::DEFAULT_ECHO_TIMEOUT = 1000 * 5;
-const unsigned int EchoConstants::DEFAULT_MAX_DROPS = 3;
+// --------------------------------------------- Echo Node ---------------------------------------------
+EchoNode::EchoNode(String uuid, String msg, unsigned int dropCount)
+{
+    this->uuid = uuid;
+    this->message = msg;
 
-// --------------------------
+    this->recorded = millis();
+    this->dropped = dropCount;
+
+    this->prev = NULL;
+    this->next = NULL;
+};
+
+EchoNode::EchoNode(String uuid, String msg) : EchoNode::EchoNode(uuid, msg, 0){};
+
+bool EchoNode::validate(String uuid)
+{
+    return this->uuid == uuid ? true : false;
+};
+
+String EchoNode::getUuid() { return this->uuid; };
+
+String EchoNode::getMessage() { return this->message; };
+// --------------------------------------------- Echo Broker ---------------------------------------------
+
+// ---------------------------------
 // Echo Public Methods
-// --------------------------
-Echo::Echo()
+// ---------------------------------
+EchoBroker::EchoBroker()
 {
     this->HEAD = NULL;
     this->TAIL = NULL;
+
+    this->DroppedHead = NULL;
+    this->DroppedTail = NULL;
+
     this->totalEchos = 0;
-    this->echoTimeoutDuration = DEFAULT_ECHO_TIMEOUT;
-    this->maxDrops = DEFAULT_MAX_DROPS;
-
-    this->logContext = NULL;
-    this->masterContext = NULL;
 };
 
-void Echo::setTimeout(unsigned int timeout)
+void EchoBroker::init(unsigned int timeoutDuration, unsigned int maxDrops)
 {
-    this->echoTimeoutDuration = timeout;
-};
-
-void Echo::setMaxDrops(unsigned int maxDrops)
-{
+    this->timeoutDuration = timeoutDuration;
     this->maxDrops = maxDrops;
 };
 
-void Echo::incrementTotalEchos()
+void EchoBroker::push(String uuid, String msg, unsigned int currentDropped)
+{
+    EchoNode *node = new EchoNode(uuid, msg, currentDropped);
+
+    this->addPendingNode(node);
+
+    // increment echo counts
+    this->incrementTotalEchos();
+};
+
+void EchoBroker::push(String uuid, String msg)
+{
+    this->push(uuid, msg, 0);
+};
+
+bool EchoBroker::verify(String uuid)
+{
+    // iterate over list of echos to find the uuid.
+    bool res = false;
+
+    if (this->totalEchos > 0)
+    {
+        EchoNode *iter = this->HEAD;
+        while (iter != NULL)
+        {
+            if (iter->validate(uuid))
+            {
+                // remove node
+                this->removeNode(iter);
+                this->decrementTotalEchos();
+                delete iter;
+                iter = NULL;
+                // notify node found
+                res = true;
+                // end loop
+                break;
+            }
+            else
+                iter = iter->next;
+        }
+    }
+
+    return res;
+};
+
+int EchoBroker::run()
+{
+    if (this->totalEchos <= 0)
+        return 0;
+
+    unsigned int currentMillis;
+    EchoNode *iter;
+    int droppedEchos;
+
+    // check for expired nodes
+    currentMillis = millis();
+    iter = this->HEAD;
+    droppedEchos = 0;
+
+    while (iter != NULL)
+    {
+        EchoNode *temp = iter;
+        iter = iter->next;
+
+        if (currentMillis - temp->recorded >= this->timeoutDuration)
+        {
+            this->removeNode(temp);
+            this->decrementTotalEchos();
+            if (temp->dropped < this->maxDrops)
+            {
+                ++temp->dropped;
+                this->addDroppedNode(temp);
+                ++droppedEchos;
+            }
+            else
+            {
+                delete temp;
+            }
+        }
+    }
+
+    return droppedEchos;
+};
+
+int EchoBroker::getEchoCount()
+{
+    return this->totalEchos;
+};
+
+EchoNode *EchoBroker::getNextDroppedNode()
+{
+    return this->DroppedHead;
+};
+
+void EchoBroker::removeCurrentDroppedNode()
+{
+    if (this->DroppedHead != NULL)
+    {
+        EchoNode *temp = this->DroppedHead;
+        this->DroppedHead = this->DroppedHead->next;
+        delete temp;
+        temp = NULL;
+    }
+};
+
+void EchoBroker::reset()
+{
+    while (this->HEAD != NULL)
+        this->removeNode(this->HEAD);
+    while (this->DroppedHead != NULL)
+        this->removeCurrentDroppedNode();
+};
+
+// ---------------------------------
+// Echo Private Methods
+// ---------------------------------
+void EchoBroker::incrementTotalEchos()
 {
     ++this->totalEchos;
-}
+};
 
-void Echo::decrementTotalEchos()
+void EchoBroker::decrementTotalEchos()
 {
-    if (this->totalEchos > 0)
-        --this->totalEchos;
-}
+    --this->totalEchos;
+};
 
-void Echo::pushEcho(String uuid, unsigned int timeMillis, int messageLength, String msg)
+void EchoBroker::addPendingNode(EchoNode *node)
 {
-    // create echo node
-    EchoNode *node = new EchoNode();
-    node->uuid = uuid;
-    node->droppedEchoCounter = 0;
-    node->timeSent = timeMillis;
-    node->messageLength = messageLength;
-    node->message = msg;
-    node->prev = NULL;
-    node->next = NULL;
-
-    // if is first node
     if (this->HEAD == NULL && this->TAIL == NULL)
     {
         this->HEAD = node;
         this->TAIL = node;
     }
-    // its not first node
     else
     {
         this->TAIL->next = node;
         node->prev = this->TAIL;
         this->TAIL = node;
     }
-
-    // increment number of nodes
-    this->incrementTotalEchos();
 };
 
-bool Echo::removeEcho(String uuid)
+void EchoBroker::addDroppedNode(EchoNode *node)
 {
-    bool isRemoved = false;
-
-    if (this->getTotalEchos() == 0)
-        return isRemoved;
-
-    EchoNode *iterator = this->HEAD;
-    while (iterator != NULL)
+    if (this->DroppedHead == NULL && this->DroppedTail == NULL)
     {
-        // look for node with the uuid to remove
-        if (iterator->uuid == uuid)
-        {
-            // uuid matches. remove from linked list
-
-            // link prev node to next node
-            if (iterator->prev != NULL)
-                iterator->prev->next = iterator->next;
-            // move head pointer if iterator is first node
-            if (this->HEAD == iterator)
-                this->HEAD = iterator->next;
-            // link next node to prev node
-            if (iterator->next != NULL)
-                iterator->next->prev = iterator->prev;
-            // move tail pointer if iterator is last node
-            if (this->TAIL == iterator)
-                this->TAIL = iterator->prev;
-
-            // remove node
-            delete iterator;
-            // reduce count
-            this->decrementTotalEchos();
-            isRemoved = true;
-            iterator = NULL;
-            // break out of while loop
-            break;
-        }
-        // iterate to next node
-        else
-        {
-            iterator = iterator->next;
-        }
-    };
-
-    return isRemoved;
-};
-
-bool Echo::verifyEcho(String uuid)
-{
-    // iterate linked list to find node with same uuid
-    // if found, remove node from linked list and returns the echo found
-    return this->removeEcho(uuid);
-}
-
-int Echo::getTotalEchos()
-{
-    return this->totalEchos;
-}
-
-void Echo::reset()
-{
-    // clears out all existing echo nodes
-    while (this->HEAD != NULL && this->TAIL != NULL)
-    {
-        this->removeEcho(this->HEAD->uuid);
+        this->DroppedHead = node;
+        this->DroppedTail = node;
     }
-}
-
-void Echo::run()
-{
-    if (this->getTotalEchos() == 0)
-        return;
-
-    // checks for expired echos
-    unsigned int currentMillis = millis();
-    EchoNode *iterator = this->HEAD;
-    EchoNode *expiredEchos[this->getTotalEchos()];
-    int expiredIterator = 0;
-
-    while (iterator != NULL)
+    else
     {
-        if (currentMillis - iterator->timeSent >= this->echoTimeoutDuration)
-        {
-            expiredEchos[expiredIterator] = iterator;
-            ++expiredIterator;
-        }
-
-        // iterate to next
-        iterator = iterator->next;
-    }
-
-    // send a message and remove all expired echos
-    for (int i = 0; i < expiredIterator; ++i)
-    {
-        EchoNode *expiredNode = expiredEchos[i];
-        String expiredStr = "";
-        expiredStr += "[Echo Timed-out] uuid: ";
-        expiredStr += expiredNode->uuid;
-        expiredStr += ", message: ";
-        expiredStr += expiredNode->message;
-        if (this->logContext != NULL)
-            this->logContext->logError(expiredStr, false);
-
-        // check if node has overrun number of retries
-        if (expiredNode->droppedEchoCounter < this->maxDrops)
-        {
-            // increment drop counter
-            ++expiredNode->droppedEchoCounter;
-            String resendingLog = "Resending uuid " + expiredNode->uuid;
-            if (this->logContext != NULL)
-                this->logContext->logError(resendingLog, false);
-            // resend the message
-            if (this->masterContext != NULL)
-                this->masterContext->send(expiredNode->message, true, false);
-            // update dropped node sent millis
-            expiredNode->timeSent = millis();
-        }
-        else
-        {
-            // echo has dropped max number of times
-            this->removeEcho(expiredNode->uuid);
-            String maxDropLog = "No echo received for " + expiredNode->uuid + ", message: " + expiredNode->message;
-            if (this->logContext != NULL)
-                this->logContext->logError(maxDropLog, false);
-        }
+        this->DroppedTail->next = node;
+        node->prev = this->DroppedTail;
+        this->DroppedTail = node;
     }
 };
 
-void Echo::attachLogContext(Logger *lContext)
+void EchoBroker::removeNode(EchoNode *iter)
 {
-    this->logContext = lContext;
-};
-
-void Echo::attachMasterContext(Master *mContext)
-{
-    this->masterContext = mContext;
+    // remove node from list
+    // link prev node to next
+    if (iter->prev != NULL)
+        iter->prev->next = iter->next;
+    // move head pointer
+    if (iter == this->HEAD)
+        this->HEAD = iter->next;
+    // link next node to prev
+    if (iter->next != NULL)
+        iter->next->prev = iter->prev;
+    // move tail pointer
+    if (iter == this->TAIL)
+        this->TAIL = iter->prev;
 };

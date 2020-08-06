@@ -1,50 +1,47 @@
-#include "Logger.h"
+#include "Logger/Logger.h"
 
-// -----------------------
-// Logger Public Variables
-// -----------------------
-Logger *logger = new Logger();
-
-// --------------------------
-// Logger Public Methods
-// --------------------------
-Logger::Logger(){};
-
-void Logger::init(HardwareSerial *ss)
+namespace Logger
 {
-    this->serial = new SerialComms(ss);
-    this->masterInstance = NULL;
-}
-
-void Logger::log(String log, bool forwardToMaster)
-{
-    this->serial->send(log + "\n");
-    if (forwardToMaster && this->masterInstance != NULL)
+    namespace
     {
-        this->masterInstance->logToMasterChip(log);
-    };
-};
+        SerialComms logSerial;
+        Master *masterInstance;
+    }; // namespace
 
-void Logger::log(String log)
-{
-    this->log(log, true);
-};
-
-void Logger::logError(String err, bool forwardToMaster)
-{
-    this->serial->send(err + "\n");
-    if (forwardToMaster && this->masterInstance != NULL)
+    bool init(HardwareSerial *serial)
     {
-        this->masterInstance->logErrorToMasterChip(err);
+        logSerial.init(serial);
+
+        masterInstance = NULL;
+        return true;
     };
-};
 
-void Logger::logError(String err)
-{
-    this->logError(err, true);
-};
+    void attachMasterInstance(Master *context)
+    {
+        masterInstance = context;
+    };
 
-void Logger::attachContext(Master *ctxt)
-{
-    this->masterInstance = ctxt;
-};
+    void log(String toLog, bool forwardToMaster)
+    {
+        if (!toLog.endsWith("\n"))
+            toLog += '\n';
+
+        logSerial.send(toLog);
+        if (forwardToMaster && masterInstance != NULL)
+            masterInstance->forwardLog(toLog);
+    };
+
+    void log(String l) { log(l, true); };
+
+    void logError(String err, bool forwardToMaster)
+    {
+        if (!err.endsWith("\n"))
+            err += '\n';
+
+        logSerial.send(err);
+        if (forwardToMaster && masterInstance != NULL)
+            masterInstance->forwardErrorLog(err);
+    };
+
+    void logError(String e) { logError(e, true); };
+}; // namespace Logger

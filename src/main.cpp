@@ -1,36 +1,32 @@
 #include <Arduino.h>
 #include "Logger/Logger.h"
 #include "Master/Master.h"
-#include "Shuttle/Shuttle.h"
 
-Master *master;
-Shuttle *shuttle;
+Master master;
 
 void setup()
 {
-  // init logger
-  logger->init(&Serial);
-  logger->log("Logger initialized");
+  bool initRes;
+  // initialize logger
+  initRes = Logger::init(&Serial);
 
-  // init Master
-  master = new Master();
-  master->init(&Serial1);
-  logger->log("master initialized");
-  // attach callbacks to logger
-  logger->attachContext(master);
+  // initialize master
+  initRes = master.init(&Serial1);
 
-  // initialise shuttle components
-  shuttle = new Shuttle();
+  // login to master
+  master.login();
 
-  // log in to master
-  master->login();
+  // attach references
+  Logger::attachMasterInstance(&master);
 
-
-
-  logger->log("Slave chip initialized");
+  if (!initRes)
+    while (true)
+      ;
+  else
+    Logger::log(F("Slave initialized"));
 }
 
 void loop()
 {
-  master->run();
+  master.run();
 }

@@ -1,41 +1,54 @@
-#include "SerialComms.h"
+#include "Comms/Serial/SerialComms.h"
 
-// ---------------------------------
-// SerialComms Constants Definition
-// ---------------------------------
-const int SerialConstants::DEFAULT_SERIAL_BAUD = 115200;
+namespace SerialCommsConstants
+{
+    const int DEFAULT_SERIAL_BAUD = 115200;
+};
 
-// --------------------------
-// SerialComms Public Methods
-// --------------------------
+// ------------------------------
+// SERIALCOMMS PUBLIC VARIABLES
+// ------------------------------
+
+// ------------------------------
+// SERIALCOMMS PUBLIC METHODS
+// ------------------------------
+SerialComms::SerialComms(){};
+
 SerialComms::SerialComms(HardwareSerial *ss)
 {
     this->init(ss);
 };
 
-void SerialComms::init(HardwareSerial *ss)
+bool SerialComms::init(HardwareSerial *ss)
 {
+    // initialize string
+    this->serialIn.reserve(256);
+
     this->ss = ss;
+    this->ss->end();
     this->ss->begin(DEFAULT_SERIAL_BAUD);
-    this->serialIn = "";
 };
 
-bool SerialComms::read()
+bool SerialComms::read(const char END_CHAR)
 {
     if (this->ss->available() > 0)
     {
-        this->serialIn += this->ss->readString();
+        this->serialIn += this->ss->readStringUntil(END_CHAR);
+        this->serialIn += END_CHAR;
         return true;
-    }
+    };
     return false;
 };
 
-bool SerialComms::send(const char *msg)
+bool SerialComms::send(String toSend)
 {
-    return this->ss->print(msg);
+    return this->ss->print(toSend);
 };
 
-bool SerialComms::send(String str)
-{
-    return this->send(str.c_str());
-};
+// ------------------------------
+// SERIALCOMMS PRIVATE VARIABLES
+// ------------------------------
+
+// ------------------------------
+// SERIALCOMMS PRIVATE METHODS
+// ------------------------------
