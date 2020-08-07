@@ -4,7 +4,7 @@ namespace MasterConstants
 {
     // serial communications
     const String HEADER_DELIMITER(F(","));
-    const String BODY_DELIMITER(F("-"));
+    const String BODY_DELIMITER(F("_"));
 
     // pings
     const unsigned long MASTER_PING_INTERVAL = 1000 * 10; // 10s
@@ -238,7 +238,7 @@ void Master::pingMaster()
     this->pong = false;
     this->pongChecked = false;
     this->lastPingMillis = millis();
-    this->send(pingMaster, true, false);
+    this->send(pingMaster, false, false);
 };
 
 void Master::runPing()
@@ -327,7 +327,6 @@ MasterComms Master::interpret(String input)
 
     int headerDeliIdx = input.indexOf(HEADER_DELIMITER);
     int stxIdx = input.indexOf(STX, headerDeliIdx + 1);
-    int bdyDeliIdx = input.indexOf(BODY_DELIMITER, stxIdx + 1); // can be -1
     int etxIdx = input.indexOf(ETX, stxIdx + 1);
 
     String uuid((char *)0);
@@ -349,6 +348,7 @@ MasterComms Master::interpret(String input)
     }
     else
     {
+        int bdyDeliIdx = message.indexOf(BODY_DELIMITER); // can be -1
         String actionStr((char *)0);
         actionStr.reserve(3);
         actionStr += bdyDeliIdx > 0 ? message.substring(0, bdyDeliIdx) : message;
@@ -405,6 +405,16 @@ void Master::perform(MasterComms input)
     case RETRACT_FINGER_PAIR:
     {
         Logger::log("received: " + String(input.getAction()) + " " + input.getInstructions(), false);
+        this->send(input);
+        break;
+    }
+    case SLAVE_BATTERY:
+    {
+        break;
+    }
+    case SLAVE_ERROR:
+    {
+        Logger::logError(input.getInstructions());
         break;
     }
     default:
