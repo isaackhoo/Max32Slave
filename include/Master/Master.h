@@ -52,6 +52,7 @@ public:
 public:
     void login();
     void setShuttleInstance(Shuttle *);
+    void onStepCompletion(ENUM_MASTER_ACTIONS, const char *);
 
     void forwardLog(const char *);
     void forwardErrorLog(const char *);

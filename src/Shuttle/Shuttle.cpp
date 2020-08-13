@@ -80,6 +80,57 @@ void Shuttle::setMasterInstance(Master *context)
     this->masterInstance = context;
 };
 
+void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
+{
+    // record new step to perform
+    this->currentStep = action;
+    strcpy(this->currentStepInstructions, inst);
+
+    switch (this->currentStep)
+    {
+    case ENGAGE_ESTOP:
+    {
+        break;
+    }
+    case DISENGAGE_ESTOP:
+    {
+        break;
+    }
+    case MOVETO:
+    {
+        logger.log("moving to slothole");
+        this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+        break;
+    }
+    case READ_BIN_SENSOR:
+    {
+        break;
+    }
+    case EXTEND_ARM:
+    {
+        break;
+    }
+    case HOME_ARM:
+    {
+        break;
+    }
+    case EXTEND_FINGER_PAIR:
+    {
+        break;
+    }
+    case RETRACT_FINGER_PAIR:
+    {
+        break;
+    }
+    case SLAVE_BATTERY:
+    {
+        break;
+    }
+    default:
+        break;
+    }
+};
+
 // --------------------------------
 // SHUTTLE PRIVATE VARIABLES
 // --------------------------------

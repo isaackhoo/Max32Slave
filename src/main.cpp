@@ -29,6 +29,8 @@ void setup()
   if (!initRes)
     while (true)
       ;
+  else
+    logger.log("Slave chip initialized");
 }
 
 void loop()

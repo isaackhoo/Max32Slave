@@ -138,6 +138,13 @@ void Master::setShuttleInstance(Shuttle *context)
     this->shuttleInstance = context;
 };
 
+void Master::onStepCompletion(ENUM_MASTER_ACTIONS action, const char *res)
+{
+    MasterComms stepComplete;
+    stepComplete.init(action, res);
+    this->send(stepComplete);
+};
+
 void Master::forwardLog(const char *log)
 {
     MasterComms flog;
@@ -395,12 +402,9 @@ void Master::perform(MasterComms input)
     case HOME_ARM:
     case EXTEND_FINGER_PAIR:
     case RETRACT_FINGER_PAIR:
-    {
-        this->send(input);
-        break;
-    }
     case SLAVE_BATTERY:
     {
+        this->shuttleInstance->onCommand(input.getAction(), input.getInstructions());
         break;
     }
     default:

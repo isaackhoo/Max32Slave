@@ -7,6 +7,7 @@
 #include "Shuttle/Constants.h"
 #include "Master/Master.h"
 #include "Master/Constants.h"
+#include "Logger/Logger.h"
 
 // movement
 #include "Assemblies/Movement/MoveMotor/MoveMotor.h"
@@ -38,6 +39,7 @@ public:
 
 public:
     void setMasterInstance(Master *);
+    void onCommand(ENUM_MASTER_ACTIONS, const char *);
 
 private:
     // movement assembly
@@ -62,6 +64,8 @@ private:
 
 private:
     Master *masterInstance;
+    ENUM_MASTER_ACTIONS currentStep;
+    char currentStepInstructions[DEFAULT_CHARARR_BLOCK_SIZE];
 };
 
 extern Shuttle shuttle;
