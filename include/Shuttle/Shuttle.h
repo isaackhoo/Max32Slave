@@ -5,6 +5,8 @@
 
 #include <Arduino.h>
 #include "Shuttle/Constants.h"
+#include "Master/Master.h"
+#include "Master/Constants.h"
 
 // movement
 #include "Assemblies/Movement/MoveMotor/MoveMotor.h"
@@ -22,6 +24,10 @@
 #include "Components/Power/Power.h"
 
 using namespace ShuttleConstants;
+using namespace MasterConstants;
+
+// forward declaration
+class Master;
 
 class Shuttle
 {
@@ -29,6 +35,9 @@ public:
     Shuttle();
     bool init(HardwareSerial *, HardwareSerial *);
     void run();
+
+public:
+    void setMasterInstance(Master *);
 
 private:
     // movement assembly
@@ -50,6 +59,11 @@ private:
     BinSensor rightBs;
     Power central12V;
     Power central24V;
+
+private:
+    Master *masterInstance;
 };
+
+extern Shuttle shuttle;
 
 #endif

@@ -1,47 +1,76 @@
 #include "Logger/Logger.h"
 
-namespace Logger
+// ------------------------------
+// LOGGER PUBLIC VARIABLES
+// ------------------------------
+Logger logger;
+
+// ------------------------------
+// LOGGER PUBLIC METHODS
+// ------------------------------
+Logger::Logger()
 {
-    namespace
+    this->masterInstance = NULL;
+};
+
+bool Logger::init(HardwareSerial *ss)
+{
+    return this->serial.init(ss);
+};
+
+void Logger::setMasterInstance(Master *context)
+{
+    this->masterInstance = context;
+};
+
+void Logger::log(const char *str, bool forward)
+{
+    if (forward && this->masterInstance != NULL)
     {
-        SerialComms logSerial;
-        Master *masterInstance;
-    }; // namespace
+        this->masterInstance->forwardLog(str);
+    }
 
-    bool init(HardwareSerial *serial)
+    this->serial.send(str);
+    // check if cstring is terminated with carriage return
+    if (str[strlen(str) - 1] != '\n')
+        this->serial.send("\n");
+};
+
+void Logger::log(const char *str)
+{
+    this->log(str, true);
+};
+
+void Logger::log(int i)
+{
+    char iStr[64];
+    itoa(i, iStr, 10);
+    strcat(iStr, "\n");
+    this->serial.send(iStr);
+};
+
+void Logger::logError(const char *err, bool forward)
+{
+    if (forward && this->masterInstance != NULL)
     {
-        logSerial.init(serial);
+        this->masterInstance->forwardErrorLog(err);
+    }
 
-        masterInstance = NULL;
-        return true;
-    };
+    this->serial.send(err);
+    // check if cstring is terminated with carriage return
+    if (err[strlen(err) - 1] != '\n')
+        this->serial.send("\n");
+};
 
-    void attachMasterInstance(Master *context)
-    {
-        masterInstance = context;
-    };
+void Logger::logError(const char *err)
+{
+    this->logError(err, true);
+};
 
-    void log(String toLog, bool forwardToMaster)
-    {
-        if (!toLog.endsWith("\n"))
-            toLog += '\n';
+// ------------------------------
+// LOGGER PRIVATE VARIABLES
+// ------------------------------
 
-        logSerial.send(toLog);
-        if (forwardToMaster && masterInstance != NULL)
-            masterInstance->forwardLog(toLog);
-    };
-
-    void log(String l) { log(l, true); };
-
-    void logError(String err, bool forwardToMaster)
-    {
-        if (!err.endsWith("\n"))
-            err += '\n';
-
-        logSerial.send(err);
-        if (forwardToMaster && masterInstance != NULL)
-            masterInstance->forwardErrorLog(err);
-    };
-
-    void logError(String e) { logError(e, true); };
-}; // namespace Logger
+// ------------------------------
+// LOGGER PRIVATE METHODS
+// ------------------------------

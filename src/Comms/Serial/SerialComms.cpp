@@ -22,8 +22,6 @@ SerialComms::SerialComms(HardwareSerial *ss)
 bool SerialComms::init(HardwareSerial *ss)
 {
     // initialize string
-    this->serialIn.reserve(256);
-
     this->ss = ss;
     this->ss->end();
     this->ss->begin(DEFAULT_SERIAL_BAUD);
@@ -33,16 +31,28 @@ bool SerialComms::read(const char END_CHAR)
 {
     if (this->ss->available() > 0)
     {
-        this->serialIn += this->ss->readStringUntil(END_CHAR);
-        this->serialIn += END_CHAR;
+        char buf[DEFAULT_CHARARR_BLOCK_SIZE];
+        int bytesRead = this->ss->readBytesUntil(END_CHAR, buf, sizeof(buf));
+
+        if (strlen(this->serialIn) > 0)
+            strcat(this->serialIn, buf);
+        else
+            strcpy(this->serialIn, buf);
+
         return true;
     };
     return false;
 };
 
-bool SerialComms::send(String toSend)
+bool SerialComms::send(const char *toSend)
 {
-    return this->ss->print(toSend);
+    this->ss->print(toSend);
+    return true;
+};
+
+void SerialComms::clearSerialIn()
+{
+    this->serialIn[0] = '\0';
 };
 
 // ------------------------------

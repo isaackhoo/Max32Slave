@@ -5,6 +5,17 @@
 
 #include <Arduino.h>
 
+// serial communications
+#define HEADER_DELIMITER ','
+#define HEADER_DELIMITER_STR ","
+#define BODY_DELIMITER '_'
+#define BODY_DELIMITER_STR "_"
+
+// pings
+#define MASTER_PING_INTERVAL 1000 * 10
+#define MASTER_PING_TIMEOUT 1000 * 5
+#define MAX_PINGS_DROPPED 3
+
 namespace MasterConstants
 {
     // actions
@@ -34,7 +45,7 @@ namespace MasterConstants
         SLAVE_ERROR,
         Num_Master_Actions_Enums
     };
-    const String EnumMasterActionsString[(int)Num_Master_Actions_Enums] = {
+    const char *EnumMasterActionsString[(int)Num_Master_Actions_Enums] = {
         "SLAVE_LOGIN",
         "SLAVE_RESET",
         "SLAVE_ECHO",
@@ -58,15 +69,6 @@ namespace MasterConstants
         "SLAVE_BATTERY",
         "SLAVE_ERROR",
     };
-
-    // serial communications
-    extern const String HEADER_DELIMITER;
-    extern const String BODY_DELIMITER;
-
-    // pings
-    extern const unsigned long MASTER_PING_INTERVAL;
-    extern const unsigned long MASTER_PING_TIMEOUT;
-    extern const unsigned long MAX_PINGS_DROPPED;
 }; // namespace MasterConstants
 
 #endif

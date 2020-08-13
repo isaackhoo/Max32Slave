@@ -10,32 +10,36 @@
 #include "ControlCharacters/ControlCharacters.h"
 #include "Echo/Echo.h"
 #include "Logger/Logger.h"
+#include "Shuttle/Shuttle.h"
 
 using namespace MasterConstants;
 using namespace Helper;
-using namespace ControlCharacters;
+
+// forward declaration
+class Shuttle;
 
 class MasterComms
 {
 public:
     MasterComms();
-    MasterComms(String, ENUM_MASTER_ACTIONS, String);
-    MasterComms(ENUM_MASTER_ACTIONS, String);
-    void init(String, ENUM_MASTER_ACTIONS, String);
-    void init(ENUM_MASTER_ACTIONS, String);
-    String toString(bool);
-    String toString();
+    void init(const char *, ENUM_MASTER_ACTIONS, const char *);
+    void init(ENUM_MASTER_ACTIONS, const char *);
 
-    String getUuid();
+public:
+    char *toString();
+
+    char *getUuid();
     ENUM_MASTER_ACTIONS getAction();
-    String getInstructions();
-    int getMsgLength();
+    char *getInstructions();
+    int getMessageLength();
 
 private:
-    String uuid;
+    int messageLength;
+    char str[DEFAULT_CHARARR_BLOCK_SIZE]; // return value for toString mtd
+
+    char uuid[DEFAULT_CHARARR_BLOCK_SIZE / 2];
     ENUM_MASTER_ACTIONS action;
-    String instructions;
-    int msgLength;
+    char instructions[DEFAULT_CHARARR_BLOCK_SIZE / 2];
 };
 
 class Master
@@ -44,14 +48,18 @@ public:
     Master();
     bool init(HardwareSerial *);
     void run();
-    void login();
 
-    void forwardLog(String);
-    void forwardErrorLog(String);
+public:
+    void login();
+    void setShuttleInstance(Shuttle *);
+
+    void forwardLog(const char *);
+    void forwardErrorLog(const char *);
 
 private:
-    SerialComms ss;
+    SerialComms serial;
     EchoBroker echoBroker;
+    Shuttle *shuttleInstance;
 
     bool pong;
     bool pongChecked;
@@ -59,10 +67,8 @@ private:
     unsigned int droppedPings;
 
 private:
-    bool send(String, bool, bool, unsigned int);
-    bool send(String, bool, bool);
+    bool send(const char *, bool, bool);
     bool send(MasterComms, bool, bool);
-    bool send(MasterComms, bool);
     bool send(MasterComms);
 
     void pingMaster();
@@ -71,8 +77,10 @@ private:
     void updatePingReceived();
 
     void extractSerialInput();
-    MasterComms interpret(String);
+    MasterComms interpret(const char *);
     void perform(MasterComms);
 };
+
+extern Master master;
 
 #endif

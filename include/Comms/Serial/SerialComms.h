@@ -5,13 +5,14 @@
 
 #include <Arduino.h>
 #include "Comms/Serial/Constants.h"
+#include "Helper/Helper.h"
 
 using namespace SerialCommsConstants;
 
 class SerialComms
 {
 public:
-    String serialIn;
+    char serialIn[DEFAULT_CHARARR_BLOCK_SIZE];
 
 public:
     SerialComms();
@@ -19,7 +20,9 @@ public:
     bool init(HardwareSerial *);
 
     bool read(const char);
-    bool send(String);
+    bool send(const char *);
+
+    void clearSerialIn();
 
 private:
     HardwareSerial *ss;

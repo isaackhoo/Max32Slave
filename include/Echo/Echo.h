@@ -2,27 +2,39 @@
 #define ECHO_H
 
 #include <Arduino.h>
+#include "Helper/Helper.h"
+
+#define MAX_ECHO_NODES 4
 
 class EchoNode
 {
 public:
-    unsigned int recorded;
-    unsigned int dropped;
+    EchoNode();
+    void init(const char *, const char *, unsigned int);
+    void init(const char *, const char *);
 
 public:
-    EchoNode *prev;
-    EchoNode *next;
+    char *getUuid();
+    char *getMessage();
 
-public:
-    EchoNode(String, String, unsigned int);
-    EchoNode(String, String);
-    bool validate(String);
-    String getUuid();
-    String getMessage();
+    unsigned int getTimeRecorded();
+    unsigned int getDropCount();
+
+    bool getIsAssigned();
+
+    bool verify(const char *);
+    void incrementDropCount();
+    void updateTimeSent(unsigned int);
+    void clearEcho();
 
 private:
-    String uuid;
-    String message;
+    char uuid[DEFAULT_CHARARR_BLOCK_SIZE / 4];
+    char message[DEFAULT_CHARARR_BLOCK_SIZE];
+
+    unsigned int timeRecorded;
+    unsigned int dropCount;
+
+    bool isAssigned;
 };
 
 class EchoBroker
@@ -30,31 +42,28 @@ class EchoBroker
 public:
     EchoBroker();
     void init(unsigned int, unsigned int);
-    void push(String, String, unsigned int);
-    void push(String, String);
-    bool verify(String);
+
+public:
+    bool push(const char *, const char *, unsigned int);
+    bool push(const char *, const char *);
+
+    bool verify(const char *);
     int run();
-    int getEchoCount();
-    EchoNode *getNextDroppedNode();
-    void removeCurrentDroppedNode();
-    void reset();
+    char *getNextDroppedString();
 
 private:
-    EchoNode *HEAD;
-    EchoNode *TAIL;
-    EchoNode *DroppedHead;
-    EchoNode *DroppedTail;
-    unsigned int totalEchos;
-
-    unsigned int timeoutDuration;
+    unsigned int echoTimeout;
     unsigned int maxDrops;
 
+    EchoNode echos[MAX_ECHO_NODES];
+    int echoPtr;
+
+    char droppedEchos[MAX_ECHO_NODES][DEFAULT_CHARARR_BLOCK_SIZE];
+    int curDroppedPtr;
+    int freeDroppedPtr;
+
 private:
-    void incrementTotalEchos();
-    void decrementTotalEchos();
-    void addPendingNode(EchoNode *);
-    void addDroppedNode(EchoNode *);
-    void removeNode(EchoNode *);
+    bool getNextUnassignedNode();
 };
 
 #endif

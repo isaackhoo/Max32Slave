@@ -1,219 +1,221 @@
 #include "Echo/Echo.h"
 
 // --------------------------------------------- Echo Node ---------------------------------------------
-EchoNode::EchoNode(String uuid, String msg, unsigned int dropCount)
+// ---------------------------------
+// ECHONODE PUBLIC VARIABLES
+// ---------------------------------
+
+// ---------------------------------
+// ECHONODE PUBLIC METHODS
+// ---------------------------------
+EchoNode::EchoNode()
 {
-    this->uuid = uuid;
-    this->message = msg;
-
-    this->recorded = millis();
-    this->dropped = dropCount;
-
-    this->prev = NULL;
-    this->next = NULL;
+    this->isAssigned = false;
 };
 
-EchoNode::EchoNode(String uuid, String msg) : EchoNode::EchoNode(uuid, msg, 0){};
-
-bool EchoNode::validate(String uuid)
+void EchoNode::init(const char *uuid, const char *msg, unsigned int dropped)
 {
-    return this->uuid == uuid ? true : false;
+    strcpy(this->uuid, uuid);
+    strcpy(this->message, msg);
+    this->dropCount = dropped;
+    this->timeRecorded = millis();
+    this->isAssigned = true;
 };
 
-String EchoNode::getUuid() { return this->uuid; };
+void EchoNode::init(const char *uuid, const char *msg)
+{
+    this->init(uuid, msg, 0);
+};
 
-String EchoNode::getMessage() { return this->message; };
+char *EchoNode::getUuid() { return this->uuid; };
+
+char *EchoNode::getMessage() { return this->message; };
+
+unsigned int EchoNode::getTimeRecorded() { return this->timeRecorded; };
+
+unsigned int EchoNode::getDropCount() { return this->dropCount; };
+
+bool EchoNode::getIsAssigned() { return this->isAssigned; };
+
+bool EchoNode::verify(const char *uuid)
+{
+    return strcmp(this->uuid, uuid) == 0 ? true : false;
+};
+
+void EchoNode::incrementDropCount()
+{
+    ++this->dropCount;
+};
+
+void EchoNode::updateTimeSent(unsigned int timeSent)
+{
+    this->timeRecorded = timeSent;
+};
+
+void EchoNode::clearEcho()
+{
+    this->uuid[0] = '\0';
+    this->message[0] = '\0';
+    this->dropCount = 0;
+    this->isAssigned = false;
+};
+
+// ---------------------------------
+// ECHONODE PRIVATE VARIABLES
+// ---------------------------------
+
+// ---------------------------------
+// ECHONODE PRIVATE METHODS
+// ---------------------------------
+
 // --------------------------------------------- Echo Broker ---------------------------------------------
+// ---------------------------------
+// ECHO PUBLIC VARIABLES
+// ---------------------------------
 
 // ---------------------------------
-// Echo Public Methods
+// ECHO PUBLIC METHODS
 // ---------------------------------
-EchoBroker::EchoBroker()
+EchoBroker::EchoBroker(){};
+
+void EchoBroker::init(unsigned int echoTimeout, unsigned int maxDrops)
 {
-    this->HEAD = NULL;
-    this->TAIL = NULL;
+    this->echoPtr = 0;
+    this->curDroppedPtr = 0;
+    this->freeDroppedPtr = 0;
 
-    this->DroppedHead = NULL;
-    this->DroppedTail = NULL;
-
-    this->totalEchos = 0;
-};
-
-void EchoBroker::init(unsigned int timeoutDuration, unsigned int maxDrops)
-{
-    this->timeoutDuration = timeoutDuration;
+    this->echoTimeout = echoTimeout;
     this->maxDrops = maxDrops;
 };
 
-void EchoBroker::push(String uuid, String msg, unsigned int currentDropped)
+bool EchoBroker::push(const char *uuid, const char *msg, unsigned int dropped)
 {
-    EchoNode *node = new EchoNode(uuid, msg, currentDropped);
+    bool res = true;
+    // search for unassigned node
+    res = this->getNextUnassignedNode();
 
-    this->addPendingNode(node);
-
-    // increment echo counts
-    this->incrementTotalEchos();
-};
-
-void EchoBroker::push(String uuid, String msg)
-{
-    this->push(uuid, msg, 0);
-};
-
-bool EchoBroker::verify(String uuid)
-{
-    // iterate over list of echos to find the uuid.
-    bool res = false;
-
-    if (this->totalEchos > 0)
+    if (res)
     {
-        EchoNode *iter = this->HEAD;
-        while (iter != NULL)
-        {
-            if (iter->validate(uuid))
-            {
-                // remove node
-                this->removeNode(iter);
-                this->decrementTotalEchos();
-                delete iter;
-                iter = NULL;
-                // notify node found
-                res = true;
-                // end loop
-                break;
-            }
-            else
-                iter = iter->next;
-        }
+        // convert the echo node that echo ptr is pointing to.
+        this->echos[this->echoPtr].init(uuid, msg, dropped);
     }
 
     return res;
 };
 
+bool EchoBroker::push(const char *uuid, const char *msg)
+{
+    this->push(uuid, msg, 0);
+};
+
+bool EchoBroker::verify(const char *uuid)
+{
+    bool res = false;
+    // search nodes for existing uuid
+    int offset = 0;
+    while (offset < MAX_ECHO_NODES)
+    {
+        EchoNode *node = &this->echos[(this->echoPtr + offset) % MAX_ECHO_NODES];
+        if (node->getIsAssigned() && node->verify(uuid))
+        {
+            node->clearEcho();
+            res = true;
+            break;
+        }
+        ++offset;
+    }
+    return res;
+};
+
 int EchoBroker::run()
 {
-    if (this->totalEchos <= 0)
-        return 0;
+    // checks for dropped echos
+    unsigned int currentMillis = millis();
+    int droppedEchos = 0;
 
-    unsigned int currentMillis;
-    EchoNode *iter;
-    int droppedEchos;
-
-    // check for expired nodes
-    currentMillis = millis();
-    iter = this->HEAD;
-    droppedEchos = 0;
-
-    while (iter != NULL)
+    int offset = 0;
+    while (offset < MAX_ECHO_NODES)
     {
-        EchoNode *temp = iter;
-        iter = iter->next;
 
-        if (currentMillis - temp->recorded >= this->timeoutDuration)
+        EchoNode *node = &this->echos[(this->echoPtr + offset) % MAX_ECHO_NODES];
+        if (node->getIsAssigned())
         {
-            this->removeNode(temp);
-            this->decrementTotalEchos();
-            if (temp->dropped < this->maxDrops)
+            // check if echo has dropped
+            if (currentMillis - node->getTimeRecorded() >= this->echoTimeout)
             {
-                ++temp->dropped;
-                this->addDroppedNode(temp);
-                ++droppedEchos;
-            }
-            else
-            {
-                delete temp;
+                if (node->getDropCount() < this->maxDrops)
+                {
+                    // increment echo's drop count
+                    node->incrementDropCount();
+                    ++droppedEchos;
+
+                    // update dropped echo timing
+                    node->updateTimeSent(currentMillis);
+
+                    // add string to send to dropped echos
+                    strcpy(this->droppedEchos[this->freeDroppedPtr], node->getMessage());
+                    // move pointer
+                    ++this->freeDroppedPtr;
+                }
+                else
+                {
+                    // echo has reached max drops.
+                    // dispose of echo
+                    node->clearEcho();
+                }
             }
         }
+        ++offset;
     }
 
     return droppedEchos;
 };
 
-int EchoBroker::getEchoCount()
+char *EchoBroker::getNextDroppedString()
 {
-    return this->totalEchos;
-};
+    static char str[DEFAULT_CHARARR_BLOCK_SIZE];
 
-EchoNode *EchoBroker::getNextDroppedNode()
-{
-    return this->DroppedHead;
-};
+    // check if end of dropped echos have been reached
+    if (this->curDroppedPtr == 0 && this->freeDroppedPtr == 0 && strlen(this->droppedEchos[this->curDroppedPtr]) == 0)
+        return NULL;
 
-void EchoBroker::removeCurrentDroppedNode()
-{
-    if (this->DroppedHead != NULL)
+    // found an echo string. copy to static str to pass out
+    strcpy(str, this->droppedEchos[this->curDroppedPtr]);
+
+    // empty out dropped echo
+    this->droppedEchos[this->curDroppedPtr][0] = '\0';
+
+    // move cur dropped ptr
+    if (this->curDroppedPtr < this->freeDroppedPtr)
+        ++this->curDroppedPtr;
+
+    if (this->curDroppedPtr == this->freeDroppedPtr)
     {
-        EchoNode *temp = this->DroppedHead;
-        this->DroppedHead = this->DroppedHead->next;
-        delete temp;
-        temp = NULL;
+        this->curDroppedPtr = 0;
+        this->freeDroppedPtr = 0;
     }
-};
 
-void EchoBroker::reset()
-{
-    while (this->HEAD != NULL)
-        this->removeNode(this->HEAD);
-    while (this->DroppedHead != NULL)
-        this->removeCurrentDroppedNode();
+    return str;
 };
 
 // ---------------------------------
-// Echo Private Methods
+// ECHO PRIVATE VARIABLES
 // ---------------------------------
-void EchoBroker::incrementTotalEchos()
-{
-    ++this->totalEchos;
-};
 
-void EchoBroker::decrementTotalEchos()
+// ---------------------------------
+// ECHO PRIVATE METHODS
+// ---------------------------------
+bool EchoBroker::getNextUnassignedNode()
 {
-    --this->totalEchos;
-};
+    int tries = 0;
+    while (this->echos[this->echoPtr].getIsAssigned() && tries < MAX_ECHO_NODES)
+    {
+        if (this->echoPtr + 1 == MAX_ECHO_NODES)
+            this->echoPtr = 0;
+        else
+            ++this->echoPtr;
+        ++tries;
+    }
 
-void EchoBroker::addPendingNode(EchoNode *node)
-{
-    if (this->HEAD == NULL && this->TAIL == NULL)
-    {
-        this->HEAD = node;
-        this->TAIL = node;
-    }
-    else
-    {
-        this->TAIL->next = node;
-        node->prev = this->TAIL;
-        this->TAIL = node;
-    }
-};
-
-void EchoBroker::addDroppedNode(EchoNode *node)
-{
-    if (this->DroppedHead == NULL && this->DroppedTail == NULL)
-    {
-        this->DroppedHead = node;
-        this->DroppedTail = node;
-    }
-    else
-    {
-        this->DroppedTail->next = node;
-        node->prev = this->DroppedTail;
-        this->DroppedTail = node;
-    }
-};
-
-void EchoBroker::removeNode(EchoNode *iter)
-{
-    // remove node from list
-    // link prev node to next
-    if (iter->prev != NULL)
-        iter->prev->next = iter->next;
-    // move head pointer
-    if (iter == this->HEAD)
-        this->HEAD = iter->next;
-    // link next node to prev
-    if (iter->next != NULL)
-        iter->next->prev = iter->prev;
-    // move tail pointer
-    if (iter == this->TAIL)
-        this->TAIL = iter->prev;
+    return this->echos[this->echoPtr].getIsAssigned() == false ? true : false;
 };

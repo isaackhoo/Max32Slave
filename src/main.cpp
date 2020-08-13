@@ -1,38 +1,37 @@
 #include <Arduino.h>
+#include "Helper/Helper.h"
+#include "ControlCharacters/ControlCharacters.h"
 #include "Logger/Logger.h"
 #include "Master/Master.h"
 #include "Shuttle/Shuttle.h"
 
-Master master;
-Shuttle shuttle;
-
 void setup()
 {
-  bool initRes;
-  // initialize logger
-  initRes = Logger::init(&Serial);
+  bool initRes = true;
 
-  // initialize master
+  // init logger
+  initRes = logger.init(&Serial);
+
+  // init master
   initRes = master.init(&Serial1);
 
-  // login to master
-  master.login();
-
-  // initialize shuttle
+  // init shuttle
   initRes = shuttle.init(&Serial2, &Serial3);
 
-  // attach references
-  Logger::attachMasterInstance(&master);
+  // share references
+  logger.setMasterInstance(&master);
+  master.setShuttleInstance(&shuttle);
+  shuttle.setMasterInstance(&master);
+
+  // login to server
+  master.login();
 
   if (!initRes)
     while (true)
       ;
-  else
-    Logger::log(F("Slave initialized"));
 }
 
 void loop()
 {
   master.run();
-  shuttle.run();
 }
