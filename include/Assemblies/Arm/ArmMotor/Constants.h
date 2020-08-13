@@ -7,7 +7,7 @@
 
 namespace ArmMotorConstants
 {
-    extern const String DEFAULT_ARM_HOME_VAL;
+    extern const char *DEFAULT_ARM_HOME_VAL;
 };
 
 #endif

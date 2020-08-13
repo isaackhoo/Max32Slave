@@ -2,7 +2,7 @@
 
 namespace ArmMotorConstants
 {
-    const String DEFAULT_ARM_HOME_VAL(F("0"));
+    const char *DEFAULT_ARM_HOME_VAL = "0";
 };
 
 // --------------------------------
@@ -16,7 +16,7 @@ ArmMotor::ArmMotor(){};
 
 ArmMotor::ArmMotor(HardwareSerial *ss) : SerialComms(ss){};
 
-void ArmMotor::extend(String val)
+void ArmMotor::extend(const char *val)
 {
     this->moveTo(val);
 };
@@ -33,7 +33,7 @@ void ArmMotor::home()
 // --------------------------------
 // ARMMOTOR PRIVATE METHODS
 // --------------------------------
-void ArmMotor::moveTo(String val){
+void ArmMotor::moveTo(const char *val){
     // motor setup
 
     // move motor to val

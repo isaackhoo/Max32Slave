@@ -21,7 +21,7 @@ SerialComms::SerialComms(HardwareSerial *ss)
 
 bool SerialComms::init(HardwareSerial *ss)
 {
-    // initialize string
+    // initialize serial
     this->ss = ss;
     this->ss->end();
     this->ss->begin(DEFAULT_SERIAL_BAUD);

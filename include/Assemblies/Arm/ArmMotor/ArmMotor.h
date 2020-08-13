@@ -15,11 +15,11 @@ public:
     ArmMotor();
     ArmMotor(HardwareSerial *);
 
-    void extend(String);
+    void extend(const char *);
     void home();
 
 private:
-    void moveTo(String);
+    void moveTo(const char *);
 };
 
 #endif

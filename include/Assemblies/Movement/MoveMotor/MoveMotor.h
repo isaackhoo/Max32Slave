@@ -16,7 +16,7 @@ public:
     MoveMotor();
     MoveMotor(HardwareSerial *, int, int);
 
-    void moveTo(String);
+    void moveTo(const char *);
 
 private:
     DigitalSensor frontSensor;

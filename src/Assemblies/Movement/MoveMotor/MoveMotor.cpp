@@ -15,9 +15,8 @@ MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2) : SerialComms(ss)
     this->rearSensor = DigitalSensor(dP2);
 };
 
-void MoveMotor::moveTo(String slothole)
-{
-    
+void MoveMotor::moveTo(const char *slothole){
+
 };
 
 // --------------------------------
