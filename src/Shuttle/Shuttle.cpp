@@ -25,7 +25,8 @@ bool Shuttle::init(HardwareSerial *moveSerial, HardwareSerial *armSerial)
     this->moveMotor = MoveMotor(
         moveSerial,
         MOVEMENT_SENSOR_PIN_FRONT,
-        MOVEMENT_SENSOR_PIN_REAR);
+        MOVEMENT_SENSOR_PIN_REAR,
+        0);
     this->brake = Brake(BRAKE_PIN_1, BRAKE_PIN_2);
     this->eStop = EStop(
         ESTOP_PIN_READ,
@@ -144,7 +145,6 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
         // disengage brakes
 
         // move motor
-        
 
         // this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
         break;
