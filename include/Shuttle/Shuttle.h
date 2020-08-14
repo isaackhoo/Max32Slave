@@ -66,8 +66,6 @@ private:
     Master *masterInstance;
     ENUM_MASTER_ACTIONS currentStep;
     char currentStepInstructions[DEFAULT_CHARARR_BLOCK_SIZE];
-
-
 };
 
 extern Shuttle shuttle;

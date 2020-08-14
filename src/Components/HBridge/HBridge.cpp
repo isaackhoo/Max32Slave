@@ -11,8 +11,8 @@ HBridge::HBridge(){};
 
 HBridge::HBridge(int dPin1, int dPin2)
 {
-    this->lane1 = DigitalComms(dPin1);
-    this->lane2 = DigitalComms(dPin2);
+    this->lane1 = DigitalComms(dPin1, OUTPUT);
+    this->lane2 = DigitalComms(dPin2, OUTPUT);
 };
 
 void HBridge::switchHL()

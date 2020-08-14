@@ -1,5 +1,68 @@
 #include "Assemblies/Movement/MoveMotor/MoveMotor.h"
 
+// ---------------------------------------------- MOVE SENSOR ----------------------------------------------
+// --------------------------------
+// MOVESENSOR PUBLIC VARIABLES
+// --------------------------------
+
+// --------------------------------
+// MOVESENSOR PUBLIC METHODS
+// --------------------------------
+MoveSensor::MoveSensor(){};
+
+MoveSensor::MoveSensor(int pin) : DigitalSensor(pin, INPUT)
+{
+    this->counter = 0;
+};
+
+bool MoveSensor::run(ENUM_MOVEMENT_DIRECTION direction)
+{
+    // store last value read
+    int lastVal = this->getLastReadVal();
+
+    // read value
+    int val = this->dRead();
+
+    // check for a change in values
+    if (lastVal == IN_HOLE && val == OUT_HOLE)
+    {
+        // detected change
+        // determine if should increment or decrement counter
+        if (direction == FORWARD)
+            this->incrementCounter();
+        else if (direction == REVERSE)
+            this->decrementCounter();
+
+        Serial.print("count changed ");
+        Serial.println(this->getCount());
+        // if change has been detected, return current value
+        return true;
+    };
+
+    return false;
+};
+
+void MoveSensor::incrementCounter()
+{
+    ++this->counter;
+};
+
+void MoveSensor::decrementCounter()
+{
+    --this->counter;
+};
+
+int MoveSensor::getCount() { return this->counter; };
+
+// --------------------------------
+// MOVESENSOR PRIVATE VARIABLES
+// --------------------------------
+
+// --------------------------------
+// MOVESENSOR PRIVATE METHODS
+// --------------------------------
+
+// ---------------------------------------------- MOVE MOTOR ----------------------------------------------
 // --------------------------------
 // MOVEMOTOR PUBLIC VARIABLES
 // --------------------------------
@@ -11,31 +74,104 @@ MoveMotor::MoveMotor(){};
 
 MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int currentSlothole) : SerialComms(ss)
 {
-    this->frontSensor = DigitalSensor(dP1);
-    this->rearSensor = DigitalSensor(dP2);
+    this->frontSensor = MoveSensor(dP1);
+    this->rearSensor = MoveSensor(dP2);
+
+    this->leadingSensor = NULL;
+    this->trailingSensor = NULL;
 
     this->currentSlothole = currentSlothole;
+};
+
+char *MoveMotor::run()
+{
+    // read rear sensor
+    bool leadingBool = this->leadingSensor->run(this->currentMovementDirection);
+    // int *trailingCount = this->trailingSensor->run(this->currentMovementDirection);
+    bool trailingBool = leadingBool;
+
+    if (leadingBool)
+    {
+        if (this->leadingSensor->getCount() == this->targetSlothole
+            // && this->trailingSensor->getCount() == this->targetSlothole
+        )
+        {
+            Serial.println("stopping motor");
+            // motor brake
+            this->stop();
+
+            char res[DEFAULT_CHARARR_BLOCK_SIZE];
+            itoa(this->leadingSensor->getCount(), res, 10);
+            return res;
+        }
+        else
+        {
+            // target not reached
+            // update movement speed
+            int diff = abs(this->targetSlothole - this->leadingSensor->getCount());
+            this->updateMoveSpeed(diff);
+        }
+    }
+
+    return NULL; // move step incomplete
 };
 
 void MoveMotor::moveTo(const char *slothole)
 {
     this->setMotorMode(SPEED);
 
+    // set target slothole
+    this->targetSlothole = atoi(slothole);
+
     // determine direction
-    int targetSlothole = atoi(slothole);
     ENUM_MOVEMENT_DIRECTION direction;
-    if (targetSlothole > this->currentSlothole)
+    if (this->targetSlothole > this->currentSlothole)
         direction = FORWARD;
-    else if (targetSlothole < this->currentSlothole)
+    else if (this->targetSlothole < this->currentSlothole)
         direction = REVERSE;
     else
         direction = NOT_MOVING;
 
-    // determine speed
-    int difference = abs(this->currentSlothole - targetSlothole);
+    // set direction of movement
+    this->currentMovementDirection = direction;
 
-    // blah blah
-    
+    // determine leading and trailing sensors
+    // switch (direction)
+    // {
+    // case FORWARD:
+    // {
+    //     this->leadingSensor = &this->frontSensor;
+    //     this->trailingSensor = &this->rearSensor;
+    //     break;
+    // }
+    // case REVERSE:
+    // {
+    //     this->leadingSensor = &this->rearSensor;
+    //     this->trailingSensor = &this->frontSensor;
+    //     break;
+    // }
+    // default:
+    //     break;
+    // }
+
+    this->leadingSensor = &this->rearSensor;
+
+    // determine slothole spread
+    int difference = abs(this->currentSlothole - this->targetSlothole);
+    this->updateMoveSpeed(difference);
+};
+
+void MoveMotor::stop()
+{
+    // immediate deceleration
+    this->send(MDEC SPEED_IM_DEC RBTQ_ENDCHAR);
+
+    // stop speed
+    char stopMovement[DEFAULT_CHARARR_BLOCK_SIZE];
+    strcpy(stopMovement, SPEED_MOVE);
+    strcat(stopMovement, "0");
+    strcat(stopMovement, RBTQ_ENDCHAR);
+    this->send(stopMovement);
 };
 
 // --------------------------------
@@ -54,26 +190,49 @@ void MoveMotor::setMotorMode(ENUM_CLOSED_LOOP_MODES mode)
     case ENUM_CLOSED_LOOP_MODES::SPEED:
     {
         // update motor mode
-        this->send(MMODE MODE_SPEED "\n");
+        this->send(MMODE MODE_SPEED RBTQ_ENDCHAR);
         // update deceleration
-        this->send(MDEC SPEED_DEC "\n");
+        this->send(MDEC SPEED_DEC RBTQ_ENDCHAR);
         // update PID
-        this->send(KP SPEED_KP "\n");
-        this->send(KI SPEED_KI "\n");
-        this->send(KD SPEED_KD "\n");
+        this->send(KP SPEED_KP RBTQ_ENDCHAR);
+        this->send(KI SPEED_KI RBTQ_ENDCHAR);
+        this->send(KD SPEED_KD RBTQ_ENDCHAR);
         break;
     }
     case ENUM_CLOSED_LOOP_MODES::POSITION:
     {
         // update motor mode
-        this->send(MMODE MODE_POSITION "\n");
+        this->send(MMODE MODE_POSITION RBTQ_ENDCHAR);
         // update PID
-        this->send(KP POSITION_KP "\n");
-        this->send(KI POSITION_KI "\n");
-        this->send(KD POSITION_KD "\n");
+        this->send(KP POSITION_KP RBTQ_ENDCHAR);
+        this->send(KI POSITION_KI RBTQ_ENDCHAR);
+        this->send(KD POSITION_KD RBTQ_ENDCHAR);
         break;
     }
     default:
         break;
     }
+};
+
+void MoveMotor::updateMoveSpeed(int diff)
+{
+    char speed[DEFAULT_CHARARR_BLOCK_SIZE];
+
+    if (diff > 16)
+        strcpy(speed, "1000");
+    else if (diff > 9)
+        strcpy(speed, "750");
+    else if (diff > 4)
+        strcpy(speed, "500");
+    else if (diff > 1)
+        strcpy(speed, "240");
+    else
+        strcpy(speed, "120");
+
+    char mmCmd[DEFAULT_CHARARR_BLOCK_SIZE];
+    strcpy(mmCmd, SPEED_MOVE);
+    strcat(mmCmd, speed);
+    strcat(mmCmd, RBTQ_ENDCHAR);
+
+    this->send(mmCmd);
 };

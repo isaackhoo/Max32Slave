@@ -9,8 +9,8 @@ class DigitalComms
 {
 public:
     DigitalComms();
-    DigitalComms(int);
-    void init(int);
+    DigitalComms(int, int);
+    void init(int, int);
 
     int dRead();
     void dWriteHigh();

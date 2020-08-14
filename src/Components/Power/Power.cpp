@@ -9,7 +9,7 @@
 // --------------------------------
 Power::Power(){};
 
-Power::Power(int pin) : DigitalComms(pin){};
+Power::Power(int pin) : DigitalComms(pin, OUTPUT){};
 
 void Power::on()
 {

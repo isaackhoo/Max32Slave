@@ -13,10 +13,10 @@ void setup()
   initRes = logger.init(&Serial);
 
   // init master
-  initRes = master.init(&Serial1);
+  initRes = master.init(&Serial3);
 
   // init shuttle
-  initRes = shuttle.init(&Serial2, &Serial3);
+  initRes = shuttle.init(&Serial1, &Serial2);
 
   // share references
   logger.setMasterInstance(&master);
@@ -36,4 +36,5 @@ void setup()
 void loop()
 {
   master.run();
+  shuttle.run();
 }

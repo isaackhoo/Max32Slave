@@ -10,25 +10,50 @@
 
 using namespace MoveMotorConstants;
 
+class MoveSensor : public DigitalSensor
+{
+public:
+    MoveSensor();
+    MoveSensor(int);
+
+public:
+    bool run(ENUM_MOVEMENT_DIRECTION);
+    void incrementCounter();
+    void decrementCounter();
+
+    int getCount();
+
+private:
+    int counter;
+};
+
 class MoveMotor : public SerialComms
 {
 public:
     MoveMotor();
     MoveMotor(HardwareSerial *, int, int, int);
+    char *run();
 
 public:
     void moveTo(const char *);
+    void stop();
 
 private:
-    DigitalSensor frontSensor;
-    DigitalSensor rearSensor;
+    MoveSensor frontSensor;
+    MoveSensor rearSensor;
+
+    MoveSensor *leadingSensor;
+    MoveSensor *trailingSensor;
 
     ENUM_CLOSED_LOOP_MODES currentMotorMode;
+    ENUM_MOVEMENT_DIRECTION currentMovementDirection;
 
+    int targetSlothole;
     int currentSlothole;
 
 private:
     void setMotorMode(ENUM_CLOSED_LOOP_MODES);
+    void updateMoveSpeed(int);
 };
 
 #endif

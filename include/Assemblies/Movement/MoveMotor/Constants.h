@@ -6,6 +6,11 @@
 #define SLOTHOLE_MIN -2
 #define SLOTHOLE_MAX 119
 
+#define IN_HOLE 0
+#define OUT_HOLE 1
+
+#define RBTQ_ENDCHAR "\r\n"
+
 #define MMODE "^MMOD "
 #define MODE_SPEED "1"
 #define MODE_POSITION "3"
@@ -41,7 +46,6 @@ namespace MoveMotorConstants
         SPEED = 1,
         POSITION = 3
     };
-
 }; // namespace MoveMotorConstants
 
 #endif

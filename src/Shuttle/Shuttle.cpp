@@ -15,11 +15,8 @@ Shuttle shuttle;
 // --------------------------------
 Shuttle::Shuttle(){};
 
-bool Shuttle::init(HardwareSerial *moveSerial, HardwareSerial *armSerial)
+bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
 {
-    // nullify
-    this->masterInstance = NULL;
-
     bool res = true;
     // initialize movement assembly
     this->moveMotor = MoveMotor(
@@ -68,6 +65,19 @@ bool Shuttle::init(HardwareSerial *moveSerial, HardwareSerial *armSerial)
     // ---------------------
     // post initialization
     // ---------------------
+    // power up shuttle
+    this->central12V.on();
+    this->central24V.on();
+
+    // arm homing power
+
+    // estop power
+
+    // nullify
+    this->masterInstance = NULL;
+
+    // clear out current step
+    this->currentStep = Num_Master_Actions_Enums;
 
     return res;
 };
@@ -75,6 +85,8 @@ bool Shuttle::init(HardwareSerial *moveSerial, HardwareSerial *armSerial)
 void Shuttle::run()
 {
     // run only the component that is in use currently
+    char *res;
+
     switch (this->currentStep)
     {
     case ENGAGE_ESTOP:
@@ -87,7 +99,13 @@ void Shuttle::run()
     }
     case MOVETO:
     {
-        // this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+        res = this->moveMotor.run();
+        if (res != NULL)
+        {
+            Serial.println("Completed move action");
+            // engage brakes
+            this->brake.engage();
+        }
         break;
     }
     case READ_BIN_SENSOR:
@@ -117,6 +135,15 @@ void Shuttle::run()
     default:
         break;
     }
+
+    if (res != NULL)
+    {
+        // step is complete
+        this->masterInstance->onStepCompletion(this->currentStep, res);
+
+        // clear out current step
+        this->currentStep = Num_Master_Actions_Enums;
+    }
 };
 
 void Shuttle::setMasterInstance(Master *context)
@@ -134,19 +161,28 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     {
     case ENGAGE_ESTOP:
     {
+        this->eStop.extend();
         break;
     }
     case DISENGAGE_ESTOP:
     {
+        this->eStop.retract();
         break;
     }
     case MOVETO:
     {
-        // disengage brakes
+        if (strcmp(inst, "-3.00") == 0)
+        {
+            this->moveMotor.stop();
+            this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+            return;
+        }
 
         // move motor
+        this->moveMotor.moveTo(inst);
 
-        // this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+        // disengage brakes
+        this->brake.disengage();
         break;
     }
     case READ_BIN_SENSOR:

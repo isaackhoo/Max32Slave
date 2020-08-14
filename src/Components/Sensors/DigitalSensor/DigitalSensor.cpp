@@ -8,7 +8,7 @@
 // DIGITALSENSOR PUBLIC METHODS
 // --------------------------------
 DigitalSensor::DigitalSensor(){};
-DigitalSensor::DigitalSensor(int pin) : DigitalComms(pin){};
+DigitalSensor::DigitalSensor(int pin, int io) : DigitalComms(pin, io){};
 
 // --------------------------------
 // DIGITALSENSOR PRIVATE VARIABLES

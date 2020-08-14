@@ -11,10 +11,10 @@ ArmHoming::ArmHoming(){};
 
 ArmHoming::ArmHoming(int leftReadPin, int leftLaserPin, int rightReadPin, int rightLaserPin)
 {
-    this->leftReceiver = DigitalSensor(leftReadPin);
+    this->leftReceiver = DigitalSensor(leftReadPin, INPUT);
     this->leftLaser = Power(leftLaserPin);
 
-    this->rightReceiver = DigitalSensor(rightReadPin);
+    this->rightReceiver = DigitalSensor(rightReadPin, INPUT);
     this->rightLaser = Power(rightLaserPin);
 };
 

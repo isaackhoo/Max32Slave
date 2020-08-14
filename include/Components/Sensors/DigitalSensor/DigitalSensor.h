@@ -10,7 +10,7 @@ class DigitalSensor : public DigitalComms
 {
 public:
     DigitalSensor();
-    DigitalSensor(int);
+    DigitalSensor(int, int);
 };
 
 #endif

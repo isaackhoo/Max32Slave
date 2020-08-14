@@ -9,14 +9,15 @@
 // --------------------------------
 DigitalComms::DigitalComms(){};
 
-DigitalComms::DigitalComms(int pin)
+DigitalComms::DigitalComms(int pin, int io)
 {
-    this->init(pin);
+    this->init(pin, io);
 };
 
-void DigitalComms::init(int pin)
+void DigitalComms::init(int pin, int io)
 {
     this->pin = (uint8_t)pin;
+    pinMode(pin, io);
 };
 
 int DigitalComms::dRead()
