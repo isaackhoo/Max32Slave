@@ -43,7 +43,6 @@
 
 namespace ShuttleConstants
 {
-
 }; // namespace ShuttleConstants
 
 #endif

@@ -71,8 +71,51 @@ bool Shuttle::init(HardwareSerial *moveSerial, HardwareSerial *armSerial)
     return res;
 };
 
-void Shuttle::run(){
-
+void Shuttle::run()
+{
+    // run only the component that is in use currently
+    switch (this->currentStep)
+    {
+    case ENGAGE_ESTOP:
+    {
+        break;
+    }
+    case DISENGAGE_ESTOP:
+    {
+        break;
+    }
+    case MOVETO:
+    {
+        // this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+        break;
+    }
+    case READ_BIN_SENSOR:
+    {
+        break;
+    }
+    case EXTEND_ARM:
+    {
+        break;
+    }
+    case HOME_ARM:
+    {
+        break;
+    }
+    case EXTEND_FINGER_PAIR:
+    {
+        break;
+    }
+    case RETRACT_FINGER_PAIR:
+    {
+        break;
+    }
+    case SLAVE_BATTERY:
+    {
+        break;
+    }
+    default:
+        break;
+    }
 };
 
 void Shuttle::setMasterInstance(Master *context)
@@ -98,8 +141,12 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case MOVETO:
     {
-        logger.log("moving to slothole");
-        this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
+        // disengage brakes
+
+        // move motor
+        
+
+        // this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
         break;
     }
     case READ_BIN_SENSOR:

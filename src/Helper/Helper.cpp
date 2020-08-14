@@ -84,9 +84,9 @@ namespace Helper
 
         for (int i = 0; i < 5; ++i)
         {
-            byte randVal = random(0, 35);
+            byte randVal = random(0, 36);
             char letter = randVal + 'a';
-            if (randVal > 25)
+            if (randVal >= 26)
                 letter = (randVal - 26) + '0';
             uuid[i] = letter;
         }
