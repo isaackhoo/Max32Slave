@@ -6,8 +6,10 @@
 #include <Arduino.h>
 #include "Assemblies/Movement/MoveMotor/Constants.h"
 #include "Comms/Serial/SerialComms.h"
+#include "Assemblies/Movement/Brake/Brake.h"
 #include "Components/Sensors/DigitalSensor/DigitalSensor.h"
 #include "Helper/Helper.h"
+#include "ControlCharacters/ControlCharacters.h"
 
 using namespace MoveMotorConstants;
 using namespace Helper;
@@ -20,6 +22,7 @@ public:
 
 public:
     bool run(ENUM_MOVEMENT_DIRECTION);
+    bool run(ENUM_MOTORSENSOR_READING);
     void setCounter(int);
     void incrementCounter();
     void decrementCounter();
@@ -34,7 +37,7 @@ class MoveMotor : public SerialComms
 {
 public:
     MoveMotor();
-    MoveMotor(HardwareSerial *, int, int, int);
+    MoveMotor(HardwareSerial *, int, int, int, int, int, int);
     char *run();
 
 public:
@@ -43,11 +46,13 @@ public:
     void updateCurrentSlothole(const char *);
 
 private:
+    Brake brake;
     MoveSensor frontSensor;
     MoveSensor rearSensor;
 
     MoveSensor *leadingSensor;
     MoveSensor *trailingSensor;
+    MoveSensor *readingSensor;
 
     ENUM_CLOSED_LOOP_MODES currentMotorMode;
     ENUM_MOVEMENT_DIRECTION currentMovementDirection;
@@ -55,16 +60,16 @@ private:
     int targetSlothole;
     int currentSlothole;
 
-    bool hasRead;
+    unsigned int lastSlotholeMillis;
+    unsigned int lastSlotholeStopTimeoutDuration;
 
-    unsigned int testMillis;
-    int repetitions;
-    bool isStopping;
-    bool adjustmentStarted;
+    bool shouldCreepPosition;
+    int creepCount;
 
 private:
     void setMotorMode(ENUM_CLOSED_LOOP_MODES);
     void updateMoveSpeed(int);
+    void determineLastSlotholeTimeoutDuration();
 };
 
 #endif

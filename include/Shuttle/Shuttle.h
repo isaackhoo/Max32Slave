@@ -46,7 +46,6 @@ public:
 private:
     // movement assembly
     MoveMotor moveMotor;
-    Brake brake;
     EStop eStop;
 
     // arm assembly

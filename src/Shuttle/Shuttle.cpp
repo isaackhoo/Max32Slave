@@ -27,8 +27,6 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         moveSerial,
         MOVEMENT_SENSOR_PIN_FRONT,
         MOVEMENT_SENSOR_PIN_REAR,
-        0);
-    this->brake = Brake(
         BRAKE_PIN_1,
         BRAKE_PIN_2,
         BRAKE_PIN_PWRPASSTRU,
@@ -86,37 +84,11 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->central12V.on();
     this->central24V.on();
 
-    // arm homing power
-
-    // estop power
-
     // nullify
     this->masterInstance = NULL;
 
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
-
-    this->leftFP.extend();
-    // this->rightFP.extend();
-    // this->eStop.extend();
-
-    delay(2000);
-
-    this->leftFP.retract();
-    // this->rightFP.retract();
-    // this->eStop.retract();
-
-    delay(2000);
-
-    this->leftFP.extend();
-    this->rightFP.extend();
-    this->eStop.extend();
-
-    delay(2000);
-
-    this->leftFP.retract();
-    this->rightFP.retract();
-    this->eStop.retract();
 
     return res;
 };
@@ -224,10 +196,6 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 
         // move motor
         this->moveMotor.moveTo(inst);
-
-        // disengage brakes
-        this->brake.disengage();
-
         break;
     }
     case READ_BIN_SENSOR:

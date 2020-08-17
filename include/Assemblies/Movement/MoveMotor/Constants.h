@@ -3,13 +3,18 @@
 #ifndef MOVEMOTOR_CONSTANTS_H
 #define MOVEMOTOR_CONSTANTS_H
 
+#define DEFAULT_STARTING_SLOTHOLE 0
 #define SLOTHOLE_MIN -2
 #define SLOTHOLE_MAX 119
+#define DEFAULT_LAST_SLOTHOLE_MILLIS 0
 
-#define IN_HOLE 0
-#define OUT_HOLE 1
+#define SLOTHOLE_BATTERY -2
+#define SLOTHOLE_LIFTER -1
+#define SLOTHOLE_BUFFER 0
+#define SLOTHOLES_PER_COL 6
 
-#define RBTQ_ENDCHAR "\r"
+#define RBTQ_ENDSTR "\r"
+#define RBTQ_ENDCHAR '\r'
 
 #define MMODE "^MMOD "
 #define MODE_SPEED "1"
@@ -32,6 +37,13 @@
 #define SPEED_MOVE "!G "
 #define PR_MOVE "!PR "
 
+#define QUERY_RPM "?BS"
+#define QUERY_DELIMITER '='
+
+#define POSITION_CREEP_MIN_RPM 10
+#define DEFAULT_MAX_CREEPS 100
+#define CREEP_VALUE "4"
+
 namespace MoveMotorConstants
 {
     enum ENUM_MOVEMENT_DIRECTION
@@ -45,6 +57,21 @@ namespace MoveMotorConstants
     {
         SPEED = 1,
         POSITION = 3
+    };
+
+    enum ENUM_MOTORSENSOR_READING
+    {
+        IN_HOLE = 0,
+        OUT_HOLE = 1
+    };
+
+    enum ENUM_LAST_SLOTHOLE_TIMEOUT_DURATION
+    {
+        BATTERY_LIFTER = 2500,
+        LIFTER_BUFFER = 2000,
+        BUFFER_RACK = 1000,
+        NEXT_COL_FIRST_SLOT = 400,
+        WITHIN_COL = 200,
     };
 }; // namespace MoveMotorConstants
 
