@@ -7,8 +7,10 @@
 #include "Assemblies/Movement/MoveMotor/Constants.h"
 #include "Comms/Serial/SerialComms.h"
 #include "Components/Sensors/DigitalSensor/DigitalSensor.h"
+#include "Helper/Helper.h"
 
 using namespace MoveMotorConstants;
+using namespace Helper;
 
 class MoveSensor : public DigitalSensor
 {
@@ -18,6 +20,7 @@ public:
 
 public:
     bool run(ENUM_MOVEMENT_DIRECTION);
+    void setCounter(int);
     void incrementCounter();
     void decrementCounter();
 
@@ -37,6 +40,7 @@ public:
 public:
     void moveTo(const char *);
     void stop();
+    void updateCurrentSlothole(const char *);
 
 private:
     MoveSensor frontSensor;
@@ -50,6 +54,13 @@ private:
 
     int targetSlothole;
     int currentSlothole;
+
+    bool hasRead;
+
+    unsigned int testMillis;
+    int repetitions;
+    bool isStopping;
+    bool adjustmentStarted;
 
 private:
     void setMotorMode(ENUM_CLOSED_LOOP_MODES);

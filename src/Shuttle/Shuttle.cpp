@@ -18,18 +18,27 @@ Shuttle::Shuttle(){};
 bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
 {
     bool res = true;
+    // initialize SPI
+    pinMode(SS, OUTPUT);
+    SPI.begin();
+
     // initialize movement assembly
     this->moveMotor = MoveMotor(
         moveSerial,
         MOVEMENT_SENSOR_PIN_FRONT,
         MOVEMENT_SENSOR_PIN_REAR,
         0);
-    this->brake = Brake(BRAKE_PIN_1, BRAKE_PIN_2);
+    this->brake = Brake(
+        BRAKE_PIN_1,
+        BRAKE_PIN_2,
+        BRAKE_PIN_PWRPASSTRU,
+        BRAKE_PIN_PWM);
     this->eStop = EStop(
         ESTOP_PIN_READ,
-        ESTOP_PIN_POWER,
         ESTOP_PIN_1,
-        ESTOP_PIN_2);
+        ESTOP_PIN_2,
+        ESTOP_PIN_POWER,
+        ESTOP_PIN_PWN);
 
     // initialize arm assembly
     this->frontCs = CurrentSensor(CS_ID_FRONT);
@@ -45,16 +54,24 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         &this->frontCs,
         FINGER_FRONTLEFT_PIN_1,
         FINGER_FRONTLEFT_PIN_2,
+        FINGER_FRONT_PIN_PWRPASSTRU,
+        FINGER_FRONTLEFT_PIN_PWM,
         &this->rearCs,
         FINGER_REARLEFT_PIN_1,
-        FINGER_REARLEFT_PIN_2);
+        FINGER_REARLEFT_PIN_2,
+        FINGER_REAR_PIN_PWRPASSTRU,
+        FINGER_REARLEFT_PIN_PWM);
     this->rightFP = FingerPair(
         &this->frontCs,
         FINGER_FRONTRIGHT_PIN_1,
         FINGER_FRONTRIGHT_PIN_2,
+        FINGER_FRONT_PIN_PWRPASSTRU,
+        FINGER_FRONTRIGHT_PIN_PWM,
         &this->rearCs,
         FINGER_REARRIGHT_PIN_1,
-        FINGER_REARRIGHT_PIN_2);
+        FINGER_REARRIGHT_PIN_2,
+        FINGER_REAR_PIN_PWRPASSTRU,
+        FINGER_REARRIGHT_PIN_PWM);
 
     // accessories
     this->leftBs = BinSensor(BINSENSOR_PIN_LEFT);
@@ -78,6 +95,28 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
 
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
+
+    this->leftFP.extend();
+    // this->rightFP.extend();
+    // this->eStop.extend();
+
+    delay(2000);
+
+    this->leftFP.retract();
+    // this->rightFP.retract();
+    // this->eStop.retract();
+
+    delay(2000);
+
+    this->leftFP.extend();
+    this->rightFP.extend();
+    this->eStop.extend();
+
+    delay(2000);
+
+    this->leftFP.retract();
+    this->rightFP.retract();
+    this->eStop.retract();
 
     return res;
 };
@@ -104,7 +143,7 @@ void Shuttle::run()
         {
             Serial.println("Completed move action");
             // engage brakes
-            this->brake.engage();
+            // this->brake.engage();
         }
         break;
     }
@@ -151,6 +190,11 @@ void Shuttle::setMasterInstance(Master *context)
     this->masterInstance = context;
 };
 
+void Shuttle::setCurrentSlothole(const char *slothole)
+{
+    this->moveMotor.updateCurrentSlothole(slothole);
+};
+
 void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 {
     // record new step to perform
@@ -183,6 +227,7 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 
         // disengage brakes
         this->brake.disengage();
+
         break;
     }
     case READ_BIN_SENSOR:

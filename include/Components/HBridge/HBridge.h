@@ -5,12 +5,16 @@
 
 #include <Arduino.h>
 #include "Comms/Digital/DigitalComms.h"
+#include "Components/Power/Power.h"
 
-class HBridge
+class HBridge : public Power
 {
 public:
     HBridge();
-    HBridge(int, int);
+    HBridge(int, int, int, int);
+
+    void allowPowerPassthrough();
+    void disallowPowerPassthrough();
 
     void switchHL();
     void switchLH();
@@ -20,6 +24,8 @@ public:
 private:
     DigitalComms lane1;
     DigitalComms lane2;
+
+    DigitalComms pwm;
 };
 
 #endif

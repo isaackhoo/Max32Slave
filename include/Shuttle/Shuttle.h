@@ -4,6 +4,7 @@
 #define SHUTTLE_H
 
 #include <Arduino.h>
+#include <SPI.h>
 #include "Shuttle/Constants.h"
 #include "Master/Master.h"
 #include "Master/Constants.h"
@@ -39,6 +40,7 @@ public:
 
 public:
     void setMasterInstance(Master *);
+    void setCurrentSlothole(const char *);
     void onCommand(ENUM_MASTER_ACTIONS, const char *);
 
 private:

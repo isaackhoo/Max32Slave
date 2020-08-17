@@ -9,7 +9,7 @@
 // --------------------------------
 DCMotor::DCMotor(){};
 
-DCMotor::DCMotor(int p1, int p2) : HBridge(p1, p2){};
+DCMotor::DCMotor(int p1, int p2, int pwrPin, int pwmPin) : HBridge(p1, p2, pwrPin, pwmPin){};
 
 void DCMotor::stop()
 {

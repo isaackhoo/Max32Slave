@@ -14,7 +14,7 @@
 // --------------------------------
 Finger::Finger(){};
 
-Finger::Finger(CurrentSensor *cs, int dPin1, int dPin2) : DCMotor(dPin1, dPin2)
+Finger::Finger(CurrentSensor *cs, int dPin1, int dPin2, int pwrPin, int pwmPin) : DCMotor(dPin1, dPin2, pwrPin, pwmPin)
 {
     this->cs = cs;
 };
@@ -37,20 +37,40 @@ FingerPair::FingerPair(
     CurrentSensor *frontCs,
     int frontP1,
     int frontP2,
+    int frontPwrPasstru,
+    int frontPwm,
     CurrentSensor *rearCs,
     int rearP1,
-    int rearP2)
+    int rearP2,
+    int rearPwrPasstru,
+    int rearPwm)
 {
-    this->frontFinger = Finger(frontCs, frontP1, frontP2);
-    this->rearFinger = Finger(rearCs, rearP1, rearP2);
+    this->frontFinger = Finger(frontCs, frontP1, frontP2, frontPwrPasstru, frontPwm);
+    this->rearFinger = Finger(rearCs, rearP1, rearP2, rearPwrPasstru, rearPwm);
 };
 
-bool FingerPair::extend(){
-
+void FingerPair::powerOn()
+{
+    this->frontFinger.on();
+    this->rearFinger.on();
 };
 
-bool FingerPair::retract(){
+void FingerPair::powerOff()
+{
+    this->frontFinger.off();
+    this->rearFinger.off();
+};
 
+bool FingerPair::extend()
+{
+    this->frontFinger.extend();
+    this->rearFinger.extend();
+};
+
+bool FingerPair::retract()
+{
+    this->frontFinger.retract();
+    this->rearFinger.retract();
 };
 
 // --------------------------------

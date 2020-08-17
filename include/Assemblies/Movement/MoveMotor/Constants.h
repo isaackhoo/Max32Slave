@@ -9,7 +9,7 @@
 #define IN_HOLE 0
 #define OUT_HOLE 1
 
-#define RBTQ_ENDCHAR "\r\n"
+#define RBTQ_ENDCHAR "\r"
 
 #define MMODE "^MMOD "
 #define MODE_SPEED "1"

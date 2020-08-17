@@ -10,7 +10,7 @@ class Brake : public HBridge
 {
 public:
     Brake();
-    Brake(int, int);
+    Brake(int, int, int, int);
 
     void engage();
     void disengage();

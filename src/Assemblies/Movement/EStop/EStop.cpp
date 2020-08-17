@@ -9,7 +9,7 @@
 // --------------------------------
 EStop::EStop(){};
 
-EStop::EStop(int aPin, int pPin, int dP1, int dP2) : AnalogComms(aPin), Power(pPin), DCMotor(dP1, dP2){};
+EStop::EStop(int aPin, int dP1, int dP2, int pwrPin, int pwmPin) : AnalogComms(aPin), DCMotor(dP1, dP2, pwrPin, pwmPin){};
 
 // --------------------------------
 // ESTOP PRIVATE VARIABLES

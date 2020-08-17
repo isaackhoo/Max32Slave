@@ -34,6 +34,10 @@ bool SerialComms::read(const char END_CHAR)
         char buf[DEFAULT_CHARARR_BLOCK_SIZE];
         int bytesRead = this->ss->readBytesUntil(END_CHAR, buf, sizeof(buf));
 
+        // force terminate a string
+        if (buf[bytesRead] != '\0')
+            buf[bytesRead] = '\0';
+
         if (strlen(this->serialIn) > 0)
             strcat(this->serialIn, buf);
         else

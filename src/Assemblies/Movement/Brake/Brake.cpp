@@ -9,16 +9,16 @@
 // --------------------------------
 Brake::Brake(){};
 
-Brake::Brake(int p1, int p2) : HBridge(p1, p2){};
+Brake::Brake(int p1, int p2, int pwrPin, int pwmPin) : HBridge(p1, p2, pwrPin, pwmPin){};
 
 void Brake::engage()
 {
-    this->switchLL();
+    this->switchHL();
 };
 
 void Brake::disengage()
 {
-    this->switchHL();
+    this->switchLL();
 };
 
 // --------------------------------

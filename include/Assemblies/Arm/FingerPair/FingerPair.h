@@ -11,7 +11,7 @@ class Finger : public DCMotor
 {
 public:
     Finger();
-    Finger(CurrentSensor *, int, int);
+    Finger(CurrentSensor *, int, int, int, int);
 
 private:
     CurrentSensor *cs;
@@ -25,9 +25,16 @@ public:
         CurrentSensor *frontCs,
         int frontP1,
         int frontP2,
+        int frontPwrPasstru,
+        int frontPwm,
         CurrentSensor *rearCs,
         int rearP1,
-        int rearP2);
+        int rearP2,
+        int rearPwrPasstru,
+        int rearPwm);
+
+    void powerOn();
+    void powerOff();
 
     bool extend();
     bool retract();

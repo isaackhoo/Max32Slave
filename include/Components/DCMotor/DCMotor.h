@@ -10,7 +10,7 @@ class DCMotor : public HBridge
 {
 public:
     DCMotor();
-    DCMotor(int, int);
+    DCMotor(int, int, int, int);
 
     void stop();
     void extend();

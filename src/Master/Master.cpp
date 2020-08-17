@@ -380,6 +380,10 @@ void Master::perform(MasterComms input)
     {
     case SLAVE_LOGIN:
     {
+        // update current slothole information
+        if (this->shuttleInstance != NULL)
+            
+
         // begin pings
         this->startPings();
         break;

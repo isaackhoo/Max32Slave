@@ -9,10 +9,15 @@
 // --------------------------------
 HBridge::HBridge(){};
 
-HBridge::HBridge(int dPin1, int dPin2)
+HBridge::HBridge(int dPin1, int dPin2, int powerPassthroughPin, int pwmPin) : Power(powerPassthroughPin)
 {
     this->lane1 = DigitalComms(dPin1, OUTPUT);
     this->lane2 = DigitalComms(dPin2, OUTPUT);
+
+    this->pwm = DigitalComms(pwmPin, OUTPUT);
+
+    this->on();             // power on
+    this->pwm.dWriteHigh(); // max pwm
 };
 
 void HBridge::switchHL()
