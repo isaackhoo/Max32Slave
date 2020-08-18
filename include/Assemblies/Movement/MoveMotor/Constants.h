@@ -21,6 +21,7 @@
 #define MODE_POSITION "3"
 
 #define MDEC "^MDEC "
+#define LOW_DEC "300"
 #define SPEED_DEC "3000"
 #define SPEED_IM_DEC "30000"
 
@@ -40,9 +41,11 @@
 #define QUERY_RPM "?BS"
 #define QUERY_DELIMITER '='
 
-#define POSITION_CREEP_MIN_RPM 10
+#define CREEP_VALUE "1"
+#define POSITION_CREEP_MIN_RPM 50
+#define POSITION_CREEP_DELAY 50
 #define DEFAULT_MAX_CREEPS 100
-#define CREEP_VALUE "4"
+
 
 namespace MoveMotorConstants
 {
@@ -67,11 +70,11 @@ namespace MoveMotorConstants
 
     enum ENUM_LAST_SLOTHOLE_TIMEOUT_DURATION
     {
-        BATTERY_LIFTER = 2500,
-        LIFTER_BUFFER = 2000,
-        BUFFER_RACK = 1000,
+        BATTERY_LIFTER = 1200,
+        LIFTER_BUFFER = 1200,
+        BUFFER_RACK = 500,
         NEXT_COL_FIRST_SLOT = 400,
-        WITHIN_COL = 200,
+        WITHIN_COL = 0,
     };
 }; // namespace MoveMotorConstants
 

@@ -90,6 +90,10 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
 
+    // keep fingers
+    this->rightFP.retract();
+    this->leftFP.retract();
+
     return res;
 };
 
@@ -114,8 +118,6 @@ void Shuttle::run()
         if (res != NULL)
         {
             Serial.println("Completed move action");
-            // engage brakes
-            // this->brake.engage();
         }
         break;
     }

@@ -12,6 +12,7 @@ DigitalComms::DigitalComms(){};
 DigitalComms::DigitalComms(int pin, int io)
 {
     this->init(pin, io);
+    this->lastReadVal = -1;
 };
 
 void DigitalComms::init(int pin, int io)

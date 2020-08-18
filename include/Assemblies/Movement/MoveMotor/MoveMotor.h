@@ -45,6 +45,9 @@ public:
     void stop();
     void updateCurrentSlothole(const char *);
 
+    void engageBrake();
+    void disengageBrake();
+
 private:
     Brake brake;
     MoveSensor frontSensor;
@@ -62,14 +65,18 @@ private:
 
     unsigned int lastSlotholeMillis;
     unsigned int lastSlotholeStopTimeoutDuration;
+    bool isStopping;
 
     bool shouldCreepPosition;
     int creepCount;
+    unsigned int lastCreepMillis;
 
 private:
     void setMotorMode(ENUM_CLOSED_LOOP_MODES);
     void updateMoveSpeed(int);
     void determineLastSlotholeTimeoutDuration();
+    int interpretRpmFeedback(const char *);
+    bool onLastSlotholeArrival();
 };
 
 #endif
