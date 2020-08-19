@@ -105,20 +105,14 @@ void Shuttle::run()
     switch (this->currentStep)
     {
     case ENGAGE_ESTOP:
-    {
-        break;
-    }
     case DISENGAGE_ESTOP:
     {
+        res = this->eStop.run();
         break;
     }
     case MOVETO:
     {
         res = this->moveMotor.run();
-        if (res != NULL)
-        {
-            Serial.println("Completed move action");
-        }
         break;
     }
     case READ_BIN_SENSOR:
@@ -150,13 +144,7 @@ void Shuttle::run()
     }
 
     if (res != NULL)
-    {
-        // step is complete
-        this->masterInstance->onStepCompletion(this->currentStep, res);
-
-        // clear out current step
-        this->currentStep = Num_Master_Actions_Enums;
-    }
+        this->feedbackStepCompletion(res);
 };
 
 void Shuttle::setMasterInstance(Master *context)
@@ -189,15 +177,19 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case MOVETO:
     {
-        if (strcmp(inst, "-3.00") == 0)
+        if (strcmp(inst, "-3.00") == 0) // temporary value to get shuttle to stop
         {
-            this->moveMotor.stop();
+            this->moveMotor.immediateStop();
             this->masterInstance->onStepCompletion(this->currentStep, this->currentStepInstructions);
             return;
         }
 
         // move motor
-        this->moveMotor.moveTo(inst);
+        if (!this->moveMotor.moveTo(inst))
+        {
+            // shuttle is already at the target position
+            this->feedbackStepCompletion(inst);
+        }
         break;
     }
     case READ_BIN_SENSOR:
@@ -214,6 +206,7 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case EXTEND_FINGER_PAIR:
     {
+        
         break;
     }
     case RETRACT_FINGER_PAIR:
@@ -236,3 +229,11 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 // --------------------------------
 // SHUTTLEPAIR PRIVATE METHODS
 // --------------------------------
+void Shuttle::feedbackStepCompletion(const char *res)
+{
+    // step is complete
+    this->masterInstance->onStepCompletion(this->currentStep, res);
+
+    // clear out current step
+    this->currentStep = Num_Master_Actions_Enums;
+};

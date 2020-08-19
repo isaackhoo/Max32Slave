@@ -41,8 +41,9 @@ public:
     char *run();
 
 public:
-    void moveTo(const char *);
+    bool moveTo(const char *);
     void stop();
+    void immediateStop();
     void updateCurrentSlothole(const char *);
 
     void engageBrake();

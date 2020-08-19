@@ -42,14 +42,6 @@ bool MoveSensor::run(ENUM_MOTORSENSOR_READING changeType)
 
     bool res = false;
 
-    if (val != lastVal)
-    {
-        Serial.print("last: ");
-        Serial.print(lastVal);
-        Serial.print(" read: ");
-        Serial.println(val);
-    }
-
     // determine which type of change to look out for
     switch (changeType)
     {
@@ -81,12 +73,12 @@ void MoveSensor::setCounter(int count)
 
 void MoveSensor::incrementCounter()
 {
-    ++this->counter;
+    this->counter = ++this->counter;
 };
 
 void MoveSensor::decrementCounter()
 {
-    --this->counter;
+    this->counter = --this->counter;
 };
 
 int MoveSensor::getCount() { return this->counter; };
@@ -117,8 +109,18 @@ MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int brakeP1, int brak
 
     this->leadingSensor = NULL;
     this->trailingSensor = NULL;
+    this->readingSensor = NULL;
 
+    this->targetSlothole = DEFAULT_STARTING_SLOTHOLE;
     this->currentSlothole = DEFAULT_STARTING_SLOTHOLE;
+
+    this->lastSlotholeMillis = 0;
+    this->lastSlotholeStopTimeoutDuration = 0;
+    this->isStopping = false;
+
+    this->shouldCreepPosition = false;
+    this->creepCount = 0;
+    this->lastCreepMillis = 0;
 };
 
 char *MoveMotor::run()
@@ -169,11 +171,12 @@ char *MoveMotor::run()
                     // update current slothole
                     this->currentSlothole = this->leadingSensor->getCount();
                 }
-                // toggle reading sensor
+
+                // toggle reading sensor after each out of hole read event
                 this->readingSensor = this->readingSensor == this->trailingSensor ? this->leadingSensor : this->trailingSensor;
             }
         }
-        // timer is set for last slothole
+        // timer has been set for last slothole
         else
         {
             // check if millis has reached to stop shuttle
@@ -183,7 +186,7 @@ char *MoveMotor::run()
                 {
                     this->isStopping = true;
                     // cut shuttle speed
-                    this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
+                    this->stop();
                     // reduce deceleration
                     this->send(MDEC "300" RBTQ_ENDSTR);
                     // start querying rpm
@@ -270,11 +273,13 @@ char *MoveMotor::run()
             if (this->leadingSensor->run(IN_HOLE))
             {
                 Serial.println("creeping found slothole");
+                // kinda helps to jam break the motor
                 this->setMotorMode(SPEED);
+
+                // no need to check for lastSlotholeArrival bool to prevent too many adjustments
                 this->onLastSlotholeArrival();
 
                 // movement is completed successfully
-                // no need to check for bool to prevent too many adjustments
                 char slothole[DEFAULT_CHARARR_BLOCK_SIZE];
                 itoa(this->currentSlothole, slothole, 10);
 
@@ -295,17 +300,18 @@ char *MoveMotor::run()
     return NULL; // move step incomplete
 };
 
-void MoveMotor::moveTo(const char *slothole)
+bool MoveMotor::moveTo(const char *slothole)
 {
+    // set target slothole
+    this->targetSlothole = atoi(slothole);
+
+    // check if shuttle is already at current slothole
+    if (this->currentSlothole == this->targetSlothole)
+        return false;
+
     // set movement motor mode
     this->setMotorMode(SPEED);
     this->shouldCreepPosition = false;
-
-    this->frontSensor.setCounter(0);
-    this->rearSensor.setCounter(0);
-
-    // set target slothole
-    this->targetSlothole = atoi(slothole);
 
     // determine direction
     ENUM_MOVEMENT_DIRECTION direction;
@@ -322,20 +328,19 @@ void MoveMotor::moveTo(const char *slothole)
     // determine leading and trailing sensors
     switch (direction)
     {
-    case FORWARD:
-    {
-        this->leadingSensor = &this->frontSensor;
-        this->trailingSensor = &this->rearSensor;
-        break;
-    }
     case REVERSE:
     {
         this->leadingSensor = &this->rearSensor;
         this->trailingSensor = &this->frontSensor;
         break;
     }
+    case FORWARD:
     default:
+    {
+        this->leadingSensor = &this->frontSensor;
+        this->trailingSensor = &this->rearSensor;
         break;
+    }
     }
 
     // disengage brakes
@@ -356,12 +361,24 @@ void MoveMotor::moveTo(const char *slothole)
 
     // start moving shuttle
     this->updateMoveSpeed(difference);
+
+    // update shuttle
+    return true;
 };
 
 void MoveMotor::stop()
 {
+    // stop speed
+    this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
+};
+
+void MoveMotor::immediateStop()
+{
+    // engage brakes - physically theres a time delay to this
+    this->engageBrake();
+
     // immediate deceleration
-    // this->send(MDEC SPEED_IM_DEC RBTQ_ENDCHAR);
+    this->send(MDEC SPEED_IM_DEC RBTQ_ENDSTR);
 
     // stop speed
     this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
@@ -429,28 +446,32 @@ void MoveMotor::setMotorMode(ENUM_CLOSED_LOOP_MODES mode)
 
 void MoveMotor::updateMoveSpeed(int diff)
 {
-    char speed[DEFAULT_CHARARR_BLOCK_SIZE];
+    char speedStr[DEFAULT_CHARARR_BLOCK_SIZE];
+    int speed = 0;
 
     if (diff > 16)
-        strcpy(speed, "1000");
+        speed = SPEED_4;
     else if (diff >= 13)
-        strcpy(speed, "750");
+        speed = SPEED_3;
     else if (diff >= 7)
-        strcpy(speed, "500");
+        speed = SPEED_2;
     else
-        strcpy(speed, "250");
-    // else if (diff > 2)
-    //     strcpy(speed, "240");
-    // else
-    //     strcpy(speed, "120");
+        speed = SPEED_1;
 
+    // implement movement direction
+    speed *= this->currentMovementDirection;
+
+    // convert int to str
+    itoa(speed, speedStr, 10);
+
+    // output speed str
     char mmCmd[DEFAULT_CHARARR_BLOCK_SIZE];
     strcpy(mmCmd, SPEED_MOVE);
-    strcat(mmCmd, speed);
+    strcat(mmCmd, speedStr);
     strcat(mmCmd, RBTQ_ENDSTR);
 
-    this->send(mmCmd);
     Serial.println(mmCmd);
+    this->send(mmCmd);
 };
 
 void MoveMotor::determineLastSlotholeTimeoutDuration()
@@ -478,13 +499,16 @@ void MoveMotor::determineLastSlotholeTimeoutDuration()
     // within column
     else
         this->lastSlotholeStopTimeoutDuration = WITHIN_COL;
+
+    Serial.print("Last slothole timeout set as ");
+    Serial.println(this->lastSlotholeStopTimeoutDuration);
 };
 
 int MoveMotor::interpretRpmFeedback(const char *feedback)
 {
     // extract and interpret RPM feedback
     int valDelimiter = IDXOF(feedback, QUERY_DELIMITER);
-    if (valDelimiter == -1) // sometimes roboteq sends garbage like '+' char
+    if (valDelimiter == -1) // sometimes roboteq sends garbage like '+' char or strings with random control chars
         return INT16_MIN;
     char rpm[DEFAULT_CHARARR_BLOCK_SIZE];
     SUBSTR(rpm, feedback, valDelimiter + 1);
@@ -495,11 +519,8 @@ int MoveMotor::interpretRpmFeedback(const char *feedback)
 
 bool MoveMotor::onLastSlotholeArrival()
 {
-    // engage brakes
-    this->engageBrake();
-
-    // immediate deceleration
-    this->send(MDEC SPEED_IM_DEC RBTQ_ENDSTR);
+    // stop shuttle
+    this->immediateStop();
 
     // update leading sensor count
     if (this->leadingSensor->getCount() != this->trailingSensor->getCount())
@@ -509,7 +530,7 @@ bool MoveMotor::onLastSlotholeArrival()
     this->currentSlothole = this->trailingSensor->getCount();
 
     // allow shuttle to settle
-    delay(50);
+    delay(100);
 
     // check if at least one of the sensors are in hole
     if (this->leadingSensor->dRead() == IN_HOLE || this->trailingSensor->dRead() == IN_HOLE)
