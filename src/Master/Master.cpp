@@ -382,7 +382,7 @@ void Master::perform(MasterComms input)
     {
         // update current slothole information
         if (this->shuttleInstance != NULL)
-            
+            this->shuttleInstance->setCurrentSlothole(input.getInstructions());
 
         // begin pings
         this->startPings();
@@ -409,6 +409,12 @@ void Master::perform(MasterComms input)
     case SLAVE_BATTERY:
     {
         this->shuttleInstance->onCommand(input.getAction(), input.getInstructions());
+        break;
+    }
+    case UPDATE_SLOTHOLE:
+    {
+        if (this->shuttleInstance != NULL)
+            this->shuttleInstance->setCurrentSlothole(input.getInstructions());
         break;
     }
     default:
