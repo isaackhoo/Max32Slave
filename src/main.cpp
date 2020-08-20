@@ -5,6 +5,9 @@
 #include "Master/Master.h"
 #include "Shuttle/Shuttle.h"
 
+#include "Master/Constants.h"
+#include "Shuttle/Constants.h"
+
 void setup()
 {
   bool initRes = true;

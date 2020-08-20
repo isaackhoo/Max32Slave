@@ -8,6 +8,7 @@
 #include "Components/DCMotor/DCMotor.h"
 #include "Assemblies/Arm/FingerPair/Constants.h"
 #include "Helper/Helper.h"
+#include "ControlCharacters/ControlCharacters.h"
 
 using namespace FingerPairConstants;
 using namespace Helper;
@@ -52,6 +53,7 @@ private:
     Finger frontFinger;
     Finger rearFinger;
     int direction;
+    unsigned int timeStart;
 };
 
 #endif

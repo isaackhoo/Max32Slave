@@ -100,9 +100,6 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // ---------------------
     // test codes
     // ---------------------
-    char inst[DEFAULT_CHARARR_BLOCK_SIZE];
-    itoa(LEFT, inst, 10);
-    this->onCommand(EXTEND_FINGER_PAIR, inst);
 
     return res;
 };
@@ -118,6 +115,10 @@ void Shuttle::run()
     case DISENGAGE_ESTOP:
     {
         res = this->eStop.run();
+        if (res == NULL)
+        {
+            this->eStopCs.readVoltage();
+        }
         break;
     }
     case MOVETO:

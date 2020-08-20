@@ -21,8 +21,9 @@
 #define MODE_POSITION "3"
 
 #define MDEC "^MDEC "
-#define LOW_DEC "300"
+#define LOW_DEC "800"
 #define SPEED_DEC "3000"
+#define HEAVY_DEC "8000"
 #define SPEED_IM_DEC "30000"
 
 #define KP "^KP "
@@ -42,13 +43,14 @@
 #define SPEED_3 750
 #define SPEED_2 500
 #define SPEED_1 250
+#define SPEED_0 120
 
 #define QUERY_RPM "?BS"
 #define QUERY_DELIMITER '='
 
 #define CREEP_VALUE "1"
-#define POSITION_CREEP_MIN_RPM 40
-#define POSITION_CREEP_DELAY 50
+#define POSITION_CREEP_MIN_RPM 35
+#define POSITION_CREEP_DELAY 25
 #define DEFAULT_MAX_CREEPS 100
 
 namespace MoveMotorConstants
@@ -76,9 +78,9 @@ namespace MoveMotorConstants
     {
         BATTERY_LIFTER = 1200,
         LIFTER_BUFFER = 1200,
-        BUFFER_RACK = 500,
-        NEXT_COL_FIRST_SLOT = 400,
-        WITHIN_COL = 0,
+        BUFFER_RACK = 900,
+        NEXT_COL_FIRST_SLOT = 500,
+        WITHIN_COL = 100,
     };
 }; // namespace MoveMotorConstants
 

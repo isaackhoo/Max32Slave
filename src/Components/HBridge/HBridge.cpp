@@ -24,15 +24,6 @@ void HBridge::switchHL()
 {
     this->lane1.dWriteHigh();
     this->lane2.dWriteLow();
-
-    Serial.print("power: ");
-    Serial.print(Power::dRead());
-    Serial.print(" pwm: ");
-    Serial.print(this->pwm.dRead());
-    Serial.print(" lane 1: ");
-    Serial.print(this->lane1.dRead());
-    Serial.print(" lane 2: ");
-    Serial.println(this->lane2.dRead());
 };
 
 void HBridge::switchLH()

@@ -49,20 +49,34 @@ FingerPair::FingerPair(
     this->direction = direction;
     this->frontFinger = Finger(frontCs, frontP1, frontP2, frontPwrPasstru, frontPwm);
     this->rearFinger = Finger(rearCs, rearP1, rearP2, rearPwrPasstru, rearPwm);
+
+    this->timeStart = 0;
 };
 
 char *FingerPair::run()
 {
     char *res = NULL;
-    double frontCurrent = this->frontFinger.cs->readCurrent();
-    double rearCurrent = this->rearFinger.cs->readCurrent();
 
-    if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
+    unsigned int currentMillis = millis();
+    unsigned int millisDiff = currentMillis - this->timeStart;
+
+    if (millisDiff >= FINGER_DELAY_BEFORE_READING && millisDiff <= FINGER_TIMEOUT_DURATION)
     {
-        static char result[DEFAULT_CHARARR_BLOCK_SIZE];
-        itoa(this->direction, result, 10);
-        res = result;
+        int frontCurrent = (int)this->frontFinger.cs->readCurrent();
+        int rearCurrent = (int)this->rearFinger.cs->readCurrent();
+
+        this->frontFinger.cs->readVoltage();
+        this->rearFinger.cs->readVoltage();
+
+        if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
+        {
+            static char result[DEFAULT_CHARARR_BLOCK_SIZE];
+            itoa(this->direction, result, 10);
+            res = result;
+        }
     }
+    else if (millisDiff > FINGER_TIMEOUT_DURATION)
+        res = NAKSTR "Finger timed out";
 
     return res;
 };
@@ -83,12 +97,14 @@ bool FingerPair::extend()
 {
     this->frontFinger.extend();
     this->rearFinger.extend();
+    this->timeStart = millis();
 };
 
 bool FingerPair::retract()
 {
     this->frontFinger.retract();
     this->rearFinger.retract();
+    this->timeStart = millis();
 };
 
 // --------------------------------

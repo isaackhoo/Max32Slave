@@ -188,7 +188,7 @@ char *MoveMotor::run()
                     // cut shuttle speed
                     this->stop();
                     // reduce deceleration
-                    this->send(MDEC "300" RBTQ_ENDSTR);
+                    this->send(MDEC LOW_DEC RBTQ_ENDSTR);
                     // start querying rpm
                     this->send(QUERY_RPM RBTQ_ENDSTR);
 
@@ -240,8 +240,10 @@ char *MoveMotor::run()
                 // check if mode should be toggled
                 if (this->shouldCreepPosition)
                 {
-                    // jam brake
-                    this->send(MDEC "30000" RBTQ_ENDSTR);
+                    // heavy brake
+                    this->send(MDEC HEAVY_DEC RBTQ_ENDSTR);
+
+                    delay(100);
 
                     // change motor mode
                     this->setMotorMode(POSITION);
@@ -265,7 +267,14 @@ char *MoveMotor::run()
                 this->disengageBrake();
 
                 // continue creeping shuttle forward
-                this->send(PR_MOVE CREEP_VALUE RBTQ_ENDSTR);
+                char directionalCreep[DEFAULT_CHARARR_BLOCK_SIZE];
+                itoa((int)this->currentMovementDirection * atoi(CREEP_VALUE), directionalCreep, 10);
+
+                char creepMsg[DEFAULT_CHARARR_BLOCK_SIZE];
+                strcpy(creepMsg, PR_MOVE);
+                strcat(creepMsg, directionalCreep);
+                strcat(creepMsg, RBTQ_ENDSTR);
+                this->send(creepMsg);
                 this->lastCreepMillis = millis();
             }
 
@@ -449,14 +458,16 @@ void MoveMotor::updateMoveSpeed(int diff)
     char speedStr[DEFAULT_CHARARR_BLOCK_SIZE];
     int speed = 0;
 
-    if (diff > 16)
+    if (diff >= 22)
         speed = SPEED_4;
-    else if (diff >= 13)
+    else if (diff >= 14)
         speed = SPEED_3;
     else if (diff >= 7)
         speed = SPEED_2;
-    else
+    else if (diff >= 2)
         speed = SPEED_1;
+    else
+        speed = SPEED_0;
 
     // implement movement direction
     speed *= this->currentMovementDirection;

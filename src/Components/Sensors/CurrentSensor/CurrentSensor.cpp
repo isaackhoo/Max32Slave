@@ -19,6 +19,7 @@ CurrentSensor::CurrentSensor(uint8_t id)
 void CurrentSensor::init(uint8_t id)
 {
     this->sensor = Adafruit_INA219(id);
+    this->sensor.begin();
 };
 
 double CurrentSensor::readCurrent()
@@ -40,15 +41,15 @@ double CurrentSensor::getLastReadCurrentVal()
 
 double CurrentSensor::readVoltage()
 {
-    float read = this->sensor.getShuntVoltage_mV();
-    float bus = this->sensor.getBusVoltage_V();
-    if ((double)read != this->lastReadVoltageVal)
+    double read = (double)this->sensor.getShuntVoltage_mV();
+    double bus = (double)this->sensor.getBusVoltage_V();
+    if (read != this->lastReadVoltageVal)
     {
         Serial.print("voltage ");
         Serial.println(read);
         Serial.print("voltage bus ");
         Serial.println(bus);
-        this->lastReadVoltageVal = (double)read;
+        this->lastReadVoltageVal = read;
     }
 };
 
