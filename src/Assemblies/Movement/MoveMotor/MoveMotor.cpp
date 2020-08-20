@@ -136,9 +136,6 @@ char *MoveMotor::run()
             // trailing laser should always read before the leading laser
             if (this->readingSensor->run(this->currentMovementDirection))
             {
-                Serial.print(this->readingSensor == this->trailingSensor ? "Trailing sensor " : "Leading sensor ");
-                Serial.print("read count ");
-                Serial.println(this->readingSensor->getCount());
                 // reading sensor has scanned from in-hole to out-hole
                 if (this->readingSensor == this->trailingSensor)
                 {
@@ -186,13 +183,11 @@ char *MoveMotor::run()
                 {
                     this->isStopping = true;
                     // cut shuttle speed
-                    this->stop();
-                    // reduce deceleration
+                    this->cutShuttleSpeed();
+                    // reduce deceleration to allow shuttle to free wheel towards slothole
                     this->send(MDEC LOW_DEC RBTQ_ENDSTR);
                     // start querying rpm
                     this->send(QUERY_RPM RBTQ_ENDSTR);
-
-                    Serial.println("cut shuttle speed to 0, deceleration 300");
                 }
             }
             // shuttle is free rolling towards slothole
@@ -201,35 +196,32 @@ char *MoveMotor::run()
                 // check leading laser for in-hole event
                 if (this->leadingSensor->run(IN_HOLE))
                 {
-                    Serial.println("spd mode leading sensor reached slothole");
                     // in hole event was detected
                     if (this->onLastSlotholeArrival())
                     {
                         // movement is completed successfully
-                        char slothole[DEFAULT_CHARARR_BLOCK_SIZE];
-                        itoa(this->currentSlothole, slothole, 10);
-
-                        Serial.println(slothole);
-                        return slothole;
+                        // at least one lazer was found in hole
+                        return this->notifySlotholeSuccessfulArrival();
                     }
                     else
                     {
-                        Serial.println("creeping shuttle more towards slothole");
+                        // leading sensor dectected slothole, but both sensors out of hole
+                        // should get shuttle to reverse back into hole
+                        Serial.println("reverse creeping shuttle back to slothole");
+                        this->shouldReverseCreep = true;
                         this->shouldCreepPosition = true;
                     }
                 }
 
-                // check that rpm has not reached 0
+                // check that rpm has not reached minimum
                 if (this->read(RBTQ_ENDCHAR))
                 {
                     int rpm = this->interpretRpmFeedback(this->serialIn);
                     this->clearSerialIn();
 
-                    Serial.println(rpm);
-
                     if (rpm != INT16_MIN && rpm < POSITION_CREEP_MIN_RPM)
                     {
-                        Serial.println("rpm fell below. creeping shuttle");
+                        Serial.println("rpm fell below min. Creeping shuttle towards slothole");
                         this->shouldCreepPosition = true;
                     }
 
@@ -243,12 +235,30 @@ char *MoveMotor::run()
                     // heavy brake
                     this->send(MDEC HEAVY_DEC RBTQ_ENDSTR);
 
-                    delay(100);
-
                     // change motor mode
                     this->setMotorMode(POSITION);
                     this->creepCount = 0;
                     this->lastCreepMillis = 0;
+                    this->modeToggleMillis = millis();
+
+                    // check for direction reversal
+                    if (this->shouldReverseCreep)
+                    {
+                        // reverse the direction of travel
+                        this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+                        // switch leading and trailing sensors
+                        MoveSensor *temp = this->leadingSensor;
+                        this->leadingSensor = this->trailingSensor;
+                        this->trailingSensor = temp;
+                    }
+
+                    // create creep command string
+                    char directionalCreep[DEFAULT_CHARARR_BLOCK_SIZE];
+                    itoa((int)this->currentMovementDirection * atoi(CREEP_VALUE), directionalCreep, 10);
+
+                    strcpy(this->creepCommand, PR_MOVE);
+                    strcat(this->creepCommand, directionalCreep);
+                    strcat(this->creepCommand, RBTQ_ENDSTR);
                 }
             }
         }
@@ -261,27 +271,23 @@ char *MoveMotor::run()
         // Stop creeping once leading sensor has read out-hole to in-hole
         if (this->creepCount < DEFAULT_MAX_CREEPS)
         {
-            if (this->lastCreepMillis == 0 || millis() - this->lastCreepMillis >= POSITION_CREEP_DELAY)
+            if ((this->lastCreepMillis == 0 && millis() - this->modeToggleMillis >= POSITION_INITIAL_CREEP_DELAY) || millis() - this->lastCreepMillis <= POSITION_CONTINUOUS_CREEP_DELAY)
             {
-                // disengage brakes
-                this->disengageBrake();
+                if (this->lastCreepMillis == 0)
+                    // disengage brakes
+                    this->disengageBrake();
 
                 // continue creeping shuttle forward
-                char directionalCreep[DEFAULT_CHARARR_BLOCK_SIZE];
-                itoa((int)this->currentMovementDirection * atoi(CREEP_VALUE), directionalCreep, 10);
-
-                char creepMsg[DEFAULT_CHARARR_BLOCK_SIZE];
-                strcpy(creepMsg, PR_MOVE);
-                strcat(creepMsg, directionalCreep);
-                strcat(creepMsg, RBTQ_ENDSTR);
-                this->send(creepMsg);
+                if (strlen(this->creepCommand) == 0)
+                    return NAKSTR "No creep command created";
+                this->send(this->creepCommand);
                 this->lastCreepMillis = millis();
             }
 
             // look out for leading sensor in hole event
             if (this->leadingSensor->run(IN_HOLE))
             {
-                Serial.println("creeping found slothole");
+                Serial.println("Creeping found slothole");
                 // kinda helps to jam break the motor
                 this->setMotorMode(SPEED);
 
@@ -289,11 +295,7 @@ char *MoveMotor::run()
                 this->onLastSlotholeArrival();
 
                 // movement is completed successfully
-                char slothole[DEFAULT_CHARARR_BLOCK_SIZE];
-                itoa(this->currentSlothole, slothole, 10);
-
-                Serial.println(slothole);
-                return slothole;
+                return this->notifySlotholeSuccessfulArrival();
             }
         }
         else
@@ -321,6 +323,12 @@ bool MoveMotor::moveTo(const char *slothole)
     // set movement motor mode
     this->setMotorMode(SPEED);
     this->shouldCreepPosition = false;
+
+    // initialize any movement variables
+    // clear out last slothole timeout
+    this->lastSlotholeMillis = DEFAULT_LAST_SLOTHOLE_MILLIS;
+    this->isStopping = false;
+    this->shouldReverseCreep = false;
 
     // determine direction
     ENUM_MOVEMENT_DIRECTION direction;
@@ -358,10 +366,6 @@ bool MoveMotor::moveTo(const char *slothole)
     // set trailing sensor to start reading first
     this->readingSensor = this->trailingSensor;
 
-    // clear out last slothole timeout
-    this->lastSlotholeMillis = DEFAULT_LAST_SLOTHOLE_MILLIS;
-    this->isStopping = false;
-
     // determine last slothole timeout based on current slothole and target slothole
     this->determineLastSlotholeTimeoutDuration();
 
@@ -375,7 +379,7 @@ bool MoveMotor::moveTo(const char *slothole)
     return true;
 };
 
-void MoveMotor::stop()
+void MoveMotor::cutShuttleSpeed()
 {
     // stop speed
     this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
@@ -459,15 +463,15 @@ void MoveMotor::updateMoveSpeed(int diff)
     int speed = 0;
 
     if (diff >= 22)
-        speed = SPEED_4;
+        speed = SPEED_5;
     else if (diff >= 14)
-        speed = SPEED_3;
+        speed = SPEED_4;
     else if (diff >= 7)
-        speed = SPEED_2;
+        speed = SPEED_3;
     else if (diff >= 2)
-        speed = SPEED_1;
+        speed = SPEED_2;
     else
-        speed = SPEED_0;
+        speed = SPEED_1;
 
     // implement movement direction
     speed *= this->currentMovementDirection;
@@ -547,4 +551,11 @@ bool MoveMotor::onLastSlotholeArrival()
     if (this->leadingSensor->dRead() == IN_HOLE || this->trailingSensor->dRead() == IN_HOLE)
         return true;
     return false;
+};
+
+char *MoveMotor::notifySlotholeSuccessfulArrival()
+{
+    static char slothole[DEFAULT_CHARARR_BLOCK_SIZE];
+    itoa(this->currentSlothole, slothole, 10);
+    return slothole;
 };

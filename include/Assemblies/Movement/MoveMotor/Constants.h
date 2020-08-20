@@ -39,18 +39,19 @@
 #define SPEED_MOVE "!G "
 #define PR_MOVE "!PR "
 
-#define SPEED_4 1000
-#define SPEED_3 750
-#define SPEED_2 500
-#define SPEED_1 250
-#define SPEED_0 120
+#define SPEED_5 1000
+#define SPEED_4 750
+#define SPEED_3 500
+#define SPEED_2 250
+#define SPEED_1 120
 
 #define QUERY_RPM "?BS"
 #define QUERY_DELIMITER '='
 
+#define POSITION_INITIAL_CREEP_DELAY 150
 #define CREEP_VALUE "1"
 #define POSITION_CREEP_MIN_RPM 35
-#define POSITION_CREEP_DELAY 25
+#define POSITION_CONTINUOUS_CREEP_DELAY 25
 #define DEFAULT_MAX_CREEPS 100
 
 namespace MoveMotorConstants

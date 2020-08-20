@@ -42,7 +42,7 @@ public:
 
 public:
     bool moveTo(const char *);
-    void stop();
+    void cutShuttleSpeed();
     void immediateStop();
     void updateCurrentSlothole(const char *);
 
@@ -67,10 +67,13 @@ private:
     unsigned int lastSlotholeMillis;
     unsigned int lastSlotholeStopTimeoutDuration;
     bool isStopping;
+    unsigned int modeToggleMillis;
+    bool shouldReverseCreep;
 
     bool shouldCreepPosition;
     int creepCount;
     unsigned int lastCreepMillis;
+    char creepCommand[DEFAULT_CHARARR_BLOCK_SIZE];
 
 private:
     void setMotorMode(ENUM_CLOSED_LOOP_MODES);
@@ -78,6 +81,7 @@ private:
     void determineLastSlotholeTimeoutDuration();
     int interpretRpmFeedback(const char *);
     bool onLastSlotholeArrival();
+    char *notifySlotholeSuccessfulArrival();
 };
 
 #endif
