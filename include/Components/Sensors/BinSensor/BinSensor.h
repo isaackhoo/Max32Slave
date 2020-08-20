@@ -11,6 +11,8 @@ class BinSensor : public AnalogComms
 public:
     BinSensor();
     BinSensor(int);
+
+    char *run();
 };
 
 #endif

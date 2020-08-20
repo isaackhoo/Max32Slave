@@ -58,14 +58,18 @@ void EStop::extend()
 {
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_EXTEND;
     this->timeStart = millis();
+    DCMotor::stop();
     DCMotor::extend();
+    Serial.println("extend method called");
 };
 
 void EStop::retract()
 {
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_RETRACT;
     this->timeStart = millis();
+    DCMotor::stop();
     DCMotor::retract();
+    Serial.println("retract method called");
 };
 
 // --------------------------------

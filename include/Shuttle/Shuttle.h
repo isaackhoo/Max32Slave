@@ -47,6 +47,7 @@ private:
     // movement assembly
     MoveMotor moveMotor;
     EStop eStop;
+    CurrentSensor eStopCs;
 
     // arm assembly
     CurrentSensor frontCs;

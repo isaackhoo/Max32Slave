@@ -34,6 +34,7 @@ Finger::Finger(CurrentSensor *cs, int dPin1, int dPin2, int pwrPin, int pwmPin) 
 FingerPair::FingerPair(){};
 
 FingerPair::FingerPair(
+    int direction,
     CurrentSensor *frontCs,
     int frontP1,
     int frontP2,
@@ -45,8 +46,25 @@ FingerPair::FingerPair(
     int rearPwrPasstru,
     int rearPwm)
 {
+    this->direction = direction;
     this->frontFinger = Finger(frontCs, frontP1, frontP2, frontPwrPasstru, frontPwm);
     this->rearFinger = Finger(rearCs, rearP1, rearP2, rearPwrPasstru, rearPwm);
+};
+
+char *FingerPair::run()
+{
+    char *res = NULL;
+    double frontCurrent = this->frontFinger.cs->readCurrent();
+    double rearCurrent = this->rearFinger.cs->readCurrent();
+
+    if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
+    {
+        static char result[DEFAULT_CHARARR_BLOCK_SIZE];
+        itoa(this->direction, result, 10);
+        res = result;
+    }
+
+    return res;
 };
 
 void FingerPair::powerOn()

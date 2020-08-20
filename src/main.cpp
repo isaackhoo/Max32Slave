@@ -27,8 +27,9 @@ void setup()
   master.login();
 
   if (!initRes)
-    while (true)
-      ;
+  {
+    executeSoftReset(RUN_SKETCH_ON_BOOT);
+  }
   else
     logger.log("Slave chip initialized");
 }

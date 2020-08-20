@@ -17,11 +17,19 @@ AnalogComms::AnalogComms(int pin)
 void AnalogComms::init(int pin)
 {
     this->pin = (uint8_t)pin;
+    this->lastReadVal = 0.00;
 };
 
 double AnalogComms::aRead()
 {
-    this->lastReadVal = analogRead(this->getPin());
+    double read = analogRead(this->getPin());
+
+    if (read != this->lastReadVal)
+    {
+        Serial.println(read);
+        this->lastReadVal = read;
+    }
+
     return this->lastReadVal;
 };
 

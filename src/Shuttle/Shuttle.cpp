@@ -37,6 +37,7 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         ESTOP_PIN_2,
         ESTOP_PIN_POWER,
         ESTOP_PIN_PWN);
+    this->eStopCs = CurrentSensor(CS_ESTOP);
 
     // initialize arm assembly
     this->frontCs = CurrentSensor(CS_ID_FRONT);
@@ -49,6 +50,7 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         ARMHOMING_READ_PIN_RIGHT,
         ARMHOMING_LASER_PIN_RIGHT);
     this->leftFP = FingerPair(
+        LEFT,
         &this->frontCs,
         FINGER_FRONTLEFT_PIN_1,
         FINGER_FRONTLEFT_PIN_2,
@@ -60,6 +62,7 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         FINGER_REAR_PIN_PWRPASSTRU,
         FINGER_REARLEFT_PIN_PWM);
     this->rightFP = FingerPair(
+        RIGHT,
         &this->frontCs,
         FINGER_FRONTRIGHT_PIN_1,
         FINGER_FRONTRIGHT_PIN_2,
@@ -94,13 +97,20 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->rightFP.retract();
     this->leftFP.retract();
 
+    // ---------------------
+    // test codes
+    // ---------------------
+    char inst[DEFAULT_CHARARR_BLOCK_SIZE];
+    itoa(LEFT, inst, 10);
+    this->onCommand(EXTEND_FINGER_PAIR, inst);
+
     return res;
 };
 
 void Shuttle::run()
 {
     // run only the component that is in use currently
-    char *res;
+    char *res = NULL;
 
     switch (this->currentStep)
     {
@@ -128,11 +138,27 @@ void Shuttle::run()
         break;
     }
     case EXTEND_FINGER_PAIR:
-    {
-        break;
-    }
     case RETRACT_FINGER_PAIR:
     {
+        ENUM_EXTENSION_DIRECTION direction = (ENUM_EXTENSION_DIRECTION)atoi(this->currentStepInstructions);
+        switch (direction)
+        {
+            case LEFT:
+            {
+                res = this->leftFP.run();
+                break;
+            }
+            case RIGHT:
+            {
+                res = this->rightFP.run();
+                break;
+            }
+            default:
+            {
+                res = NAKSTR "Invalid finger pair to run";
+                break;
+            }
+        }
         break;
     }
     case SLAVE_BATTERY:
@@ -206,11 +232,50 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case EXTEND_FINGER_PAIR:
     {
-        
+        // interpret direction from instructions
+        ENUM_EXTENSION_DIRECTION direction = (ENUM_EXTENSION_DIRECTION)atoi(this->currentStepInstructions);
+        switch (direction)
+        {
+        case LEFT:
+        {
+            this->leftFP.extend();
+            break;
+        }
+        case RIGHT:
+        {
+            this->rightFP.extend();
+            break;
+        }
+        default:
+        {
+            this->masterInstance->onStepCompletion(this->currentStep, NAKSTR "Invalid finger pair");
+            break;
+        }
+        }
         break;
     }
     case RETRACT_FINGER_PAIR:
     {
+        // interpret direction from instructions
+        ENUM_EXTENSION_DIRECTION direction = (ENUM_EXTENSION_DIRECTION)atoi(this->currentStepInstructions);
+        switch (direction)
+        {
+        case LEFT:
+        {
+            this->leftFP.retract();
+            break;
+        }
+        case RIGHT:
+        {
+            this->rightFP.retract();
+            break;
+        }
+        default:
+        {
+            this->masterInstance->onStepCompletion(this->currentStep, NAKSTR "Invalid finger pair");
+            break;
+        }
+        }
         break;
     }
     case SLAVE_BATTERY:

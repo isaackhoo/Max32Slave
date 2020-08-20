@@ -413,6 +413,7 @@ void Master::perform(MasterComms input)
     }
     case UPDATE_SLOTHOLE:
     {
+        Serial.println("updating slothole");
         if (this->shuttleInstance != NULL)
             this->shuttleInstance->setCurrentSlothole(input.getInstructions());
         break;
