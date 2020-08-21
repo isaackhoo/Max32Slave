@@ -133,10 +133,10 @@ void Shuttle::run()
         res = this->moveMotor.run();
         break;
     }
-    case READ_BIN_SENSOR:
-    {
-        break;
-    }
+    // case READ_BIN_SENSOR:
+    // {
+    //     break;
+    // }
     case EXTEND_ARM:
     {
         res = this->armMotor.run();
@@ -242,15 +242,46 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
         }
 
         // move motor
-        if (!this->moveMotor.moveTo(inst))
+        if (!this->moveMotor.moveTo(this->currentStepInstructions))
         {
             // shuttle is already at the target position
-            this->feedbackStepCompletion(inst);
+            this->feedbackStepCompletion(this->currentStepInstructions);
         }
         break;
     }
     case READ_BIN_SENSOR:
     {
+        char readValStr[DEFAULT_CHARARR_BLOCK_SIZE];
+        double readVal;
+        BinSensor *activeSensor = NULL;
+        ENUM_EXTENSION_DIRECTION scanDirection;
+
+        // determine bin sensor to read
+        int directionalValue = atoi(this->currentStepInstructions);
+
+        if (directionalValue < ENUM_EXTENSION_DIRECTION::LEFT)
+        {
+            // scan using left bin sensor
+            activeSensor = &this->leftBs;
+            scanDirection = ENUM_EXTENSION_DIRECTION::LEFT;
+        }
+        else if (directionalValue > ENUM_EXTENSION_DIRECTION::RIGHT)
+        {
+            // scan using right bin sensor
+            activeSensor = &this->rightBs;
+            scanDirection = ENUM_EXTENSION_DIRECTION::RIGHT;
+        }
+
+        // scan for bin
+        if (activeSensor == NULL)
+            this->feedbackStepCompletion(NAKSTR "No bin sensor found");
+
+        readVal = scanDirection * activeSensor->aRead();
+
+        // feedback to master scan result
+        itoa((int)readVal, readValStr, 10);
+        this->feedbackStepCompletion(readValStr);
+
         break;
     }
     case EXTEND_ARM:
