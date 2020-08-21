@@ -5,13 +5,15 @@
 
 #include <Arduino.h>
 #include "Assemblies/Movement/MoveMotor/Constants.h"
-#include "Comms/Serial/SerialComms.h"
+#include "Comms/Roboteq/Roboteq.h"
+#include "Comms/RoboTeq/Constants.h"
 #include "Assemblies/Movement/Brake/Brake.h"
 #include "Components/Sensors/DigitalSensor/DigitalSensor.h"
 #include "Helper/Helper.h"
 #include "ControlCharacters/ControlCharacters.h"
 
 using namespace MoveMotorConstants;
+using namespace RoboteqConstants;
 using namespace Helper;
 
 class MoveSensor : public DigitalSensor
@@ -33,7 +35,7 @@ private:
     int counter;
 };
 
-class MoveMotor : public SerialComms
+class MoveMotor : public Roboteq
 {
 public:
     MoveMotor();
@@ -58,7 +60,6 @@ private:
     MoveSensor *trailingSensor;
     MoveSensor *readingSensor;
 
-    ENUM_CLOSED_LOOP_MODES currentMotorMode;
     ENUM_MOVEMENT_DIRECTION currentMovementDirection;
 
     int targetSlothole;
@@ -73,15 +74,12 @@ private:
     bool shouldCreepPosition;
     int creepCount;
     unsigned int lastCreepMillis;
-    char creepCommand[DEFAULT_CHARARR_BLOCK_SIZE];
 
 private:
-    void setMotorMode(ENUM_CLOSED_LOOP_MODES);
     void updateMoveSpeed(int);
     void determineLastSlotholeTimeoutDuration();
-    int interpretRpmFeedback(const char *);
     bool onLastSlotholeArrival();
-    char *notifySlotholeSuccessfulArrival();
+    char *createSlotholeArriveSuccessStr();
 };
 
 #endif

@@ -8,6 +8,43 @@
 // --------------------------------
 // FINGER PUBLIC METHODS
 // --------------------------------
+void Finger::resetAvgCurrentReadings()
+{
+    this->avgCurrentDraw = 0;
+    this->totalCurrentReads = 0;
+};
+
+void Finger::appendCurrentReading(double current)
+{
+    this->avgCurrentDraw = ((this->avgCurrentDraw * this->totalCurrentReads) + current) / (this->totalCurrentReads + 1);
+    this->totalCurrentReads += 1;
+};
+
+double Finger::getAvgCurrent()
+{
+    return this->avgCurrentDraw;
+};
+
+void Finger::recordRetractionAvgCurrentRead()
+{
+    this->retractionAvgCurrentRead = this->getAvgCurrent();
+    this->resetAvgCurrentReadings();
+};
+
+double Finger::getRetractionAvgCurrentRead()
+{
+    return this->retractionAvgCurrentRead;
+};
+
+void Finger::setMovementStarted(bool didStart)
+{
+    this->movementStarted = didStart;
+};
+
+bool Finger::getIsMovementStarted()
+{
+    return this->movementStarted;
+};
 
 // --------------------------------
 // FINGER PRIVATE VARIABLES
@@ -62,21 +99,44 @@ char *FingerPair::run()
 
     if (millisDiff >= FINGER_DELAY_BEFORE_READING && millisDiff <= FINGER_TIMEOUT_DURATION)
     {
-        int frontCurrent = (int)this->frontFinger.cs->readCurrent();
-        int rearCurrent = (int)this->rearFinger.cs->readCurrent();
+        double frontCurrent = this->frontFinger.cs->readCurrent();
+        double rearCurrent = this->rearFinger.cs->readCurrent();
 
-        this->frontFinger.cs->readVoltage();
-        this->rearFinger.cs->readVoltage();
+        // record finger average current draw during movement
+        if (frontCurrent > FINGER_CURRENT_THRESHOLD)
+            this->frontFinger.appendCurrentReading(frontCurrent);
+        if (rearCurrent > FINGER_CURRENT_THRESHOLD)
+            this->rearFinger.appendCurrentReading(rearCurrent);
+
+        // check that finger movement started
+        if (!this->frontFinger.getIsMovementStarted())
+            if (frontCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                this->frontFinger.setMovementStarted(true);
+
+        if (!this->rearFinger.getIsMovementStarted())
+            if (rearCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                this->rearFinger.setMovementStarted(true);
 
         if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
         {
             static char result[DEFAULT_CHARARR_BLOCK_SIZE];
             itoa(this->direction, result, 10);
             res = result;
+
+            // if any finger didnt manage to start movement
+            if (!this->frontFinger.getIsMovementStarted() || !this->rearFinger.getIsMovementStarted())
+                res = NAKSTR "Finger failed to move";
         }
     }
     else if (millisDiff > FINGER_TIMEOUT_DURATION)
+    {
         res = NAKSTR "Finger timed out";
+
+        if (this->lastMovement == FINGER_EXTENSION)
+            this->retract();
+        else if (this->lastMovement == FINGER_RETRACTION)
+            this->extend();
+    }
 
     return res;
 };
@@ -95,16 +155,18 @@ void FingerPair::powerOff()
 
 bool FingerPair::extend()
 {
+    this->initializeFingersBeforeMove();
     this->frontFinger.extend();
     this->rearFinger.extend();
-    this->timeStart = millis();
+    this->lastMovement = FINGER_EXTENSION;
 };
 
 bool FingerPair::retract()
 {
+    this->initializeFingersBeforeMove();
     this->frontFinger.retract();
     this->rearFinger.retract();
-    this->timeStart = millis();
+    this->lastMovement = FINGER_RETRACTION;
 };
 
 // --------------------------------
@@ -114,3 +176,16 @@ bool FingerPair::retract()
 // --------------------------------
 // FINGERPAIR PRIVATE METHODS
 // --------------------------------
+void FingerPair::initializeFingersBeforeMove()
+{
+    // reset finger inital current spike read
+    this->frontFinger.setMovementStarted(false);
+    this->rearFinger.setMovementStarted(false);
+
+    // reset finger current readings
+    this->frontFinger.resetAvgCurrentReadings();
+    this->rearFinger.resetAvgCurrentReadings();
+
+    // start time millis
+    this->timeStart = millis();
+};

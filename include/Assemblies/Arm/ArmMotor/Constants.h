@@ -5,9 +5,22 @@
 
 #include <Arduino.h>
 
+#define ARM_POSITION_COUNT_FIRST_DEPTH 642
+#define ARM_POSITION_COUNT_SECOND_DEPTH 1185
+#define ARM_POSITION_COUNT_BUFFER 900
+#define ARM_POSITION_COUNT_OFFSET 30
+#define ARM_POSITION_COUNT_HOME 0
+
+#define ARM_ACCLERATION "20000"
+#define ARM_DECELERATION "20000"
+
+#define ARM_TIMEOUT_DURATION 7500
+#define ARM_POSITION_COUNT_TOLERANCE 1
+
+
 namespace ArmMotorConstants
 {
-    extern const char *DEFAULT_ARM_HOME_VAL;
+
 };
 
 #endif

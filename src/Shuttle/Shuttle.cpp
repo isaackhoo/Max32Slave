@@ -40,15 +40,17 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->eStopCs = CurrentSensor(CS_ESTOP);
 
     // initialize arm assembly
-    this->frontCs = CurrentSensor(CS_ID_FRONT);
-    this->rearCs = CurrentSensor(CS_ID_REAR);
-
     this->armMotor = ArmMotor(armSerial);
     this->armHoming = ArmHoming(
         ARMHOMING_READ_PIN_LEFT,
         ARMHOMING_LASER_PIN_LEFT,
+        CS_ARMHOMING_LEFT,
         ARMHOMING_READ_PIN_RIGHT,
-        ARMHOMING_LASER_PIN_RIGHT);
+        ARMHOMING_LASER_PIN_RIGHT,
+        CS_ARMHOMING_RIGHT);
+
+    this->frontCs = CurrentSensor(CS_ID_FRONT);
+    this->rearCs = CurrentSensor(CS_ID_REAR);
     this->leftFP = FingerPair(
         LEFT,
         &this->frontCs,
@@ -97,9 +99,13 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->rightFP.retract();
     this->leftFP.retract();
 
+    // off arm homing
+    this->armHoming.laserOff();
+
     // ---------------------
     // test codes
     // ---------------------
+    this->onCommand(EXTEND_ARM, "300");
 
     return res;
 };
@@ -117,7 +123,8 @@ void Shuttle::run()
         res = this->eStop.run();
         if (res == NULL)
         {
-            this->eStopCs.readVoltage();
+            this->eStopCs.readShuntVoltage();
+            this->eStopCs.readBusVoltage();
         }
         break;
     }
@@ -132,10 +139,29 @@ void Shuttle::run()
     }
     case EXTEND_ARM:
     {
+        res = this->armMotor.run();
         break;
     }
     case HOME_ARM:
     {
+        if (!this->armHoming.getIsCheckingHome())
+        {
+            res = this->armMotor.run();
+            if (res != NULL)
+            {
+                this->armHoming.startCheckingHome(res);
+                res = NULL;
+            }
+        }
+        else
+        {
+            // check that arm is home
+            res = this->armHoming.run();
+            if (res != NULL)
+            {
+                this->armHoming.clearIsCheckingHome();
+            }
+        }
         break;
     }
     case EXTEND_FINGER_PAIR:
@@ -144,21 +170,21 @@ void Shuttle::run()
         ENUM_EXTENSION_DIRECTION direction = (ENUM_EXTENSION_DIRECTION)atoi(this->currentStepInstructions);
         switch (direction)
         {
-            case LEFT:
-            {
-                res = this->leftFP.run();
-                break;
-            }
-            case RIGHT:
-            {
-                res = this->rightFP.run();
-                break;
-            }
-            default:
-            {
-                res = NAKSTR "Invalid finger pair to run";
-                break;
-            }
+        case LEFT:
+        {
+            res = this->leftFP.run();
+            break;
+        }
+        case RIGHT:
+        {
+            res = this->rightFP.run();
+            break;
+        }
+        default:
+        {
+            res = NAKSTR "Invalid finger pair to run";
+            break;
+        }
         }
         break;
     }
@@ -170,7 +196,11 @@ void Shuttle::run()
         break;
     }
 
-    if (res != NULL)
+    if (res != NULL && this->currentStep == EXTEND_ARM)
+    {
+        this->onCommand(HOME_ARM, "0");
+    }
+    else if (res != NULL)
         this->feedbackStepCompletion(res);
 };
 
@@ -225,10 +255,12 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case EXTEND_ARM:
     {
+        this->armMotor.extend(this->currentStepInstructions);
         break;
     }
     case HOME_ARM:
     {
+        this->armMotor.home();
         break;
     }
     case EXTEND_FINGER_PAIR:

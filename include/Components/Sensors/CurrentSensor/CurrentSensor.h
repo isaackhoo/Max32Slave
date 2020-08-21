@@ -16,13 +16,17 @@ public:
     double readCurrent();
     double getLastReadCurrentVal();
 
-    double readVoltage();
-    double getLastReadVoltageVal();
+    double readShuntVoltage();
+    double getLastReadShuntVoltageVal();
+
+    double readBusVoltage();
+    double getLastReadBusVoltageVal();
 
 private:
     Adafruit_INA219 sensor;
     double lastReadCurrentVal;
-    double lastReadVoltageVal;
+    double lastReadShuntVoltageVal;
+    double lastReadBusVoltageVal;
 };
 
 #endif

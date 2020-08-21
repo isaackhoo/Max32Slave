@@ -101,7 +101,7 @@ int MoveSensor::getCount() { return this->counter; };
 // --------------------------------
 MoveMotor::MoveMotor(){};
 
-MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int brakeP1, int brakeP2, int brakePinPwr, int brakePinPwm) : SerialComms(ss)
+MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int brakeP1, int brakeP2, int brakePinPwr, int brakePinPwm) : Roboteq(ss)
 {
     this->brake = Brake(brakeP1, brakeP2, brakePinPwr, brakePinPwm);
     this->frontSensor = MoveSensor(dP1);
@@ -126,9 +126,9 @@ MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int brakeP1, int brak
 char *MoveMotor::run()
 {
     // determine movement mode
-    switch (this->currentMotorMode)
+    switch (this->getMode())
     {
-    case SPEED:
+    case ENUM_ROBOTEQ_CONFIG::SPEED:
     {
         // not yet reached last slothole
         if (this->lastSlotholeMillis == 0)
@@ -185,9 +185,9 @@ char *MoveMotor::run()
                     // cut shuttle speed
                     this->cutShuttleSpeed();
                     // reduce deceleration to allow shuttle to free wheel towards slothole
-                    this->send(MDEC LOW_DEC RBTQ_ENDSTR);
+                    this->setDeceleration(LOW_DEC);
                     // start querying rpm
-                    this->send(QUERY_RPM RBTQ_ENDSTR);
+                    this->requestRpm();
                 }
             }
             // shuttle is free rolling towards slothole
@@ -201,7 +201,7 @@ char *MoveMotor::run()
                     {
                         // movement is completed successfully
                         // at least one lazer was found in hole
-                        return this->notifySlotholeSuccessfulArrival();
+                        return this->createSlotholeArriveSuccessStr();
                     }
                     else
                     {
@@ -214,10 +214,9 @@ char *MoveMotor::run()
                 }
 
                 // check that rpm has not reached minimum
-                if (this->read(RBTQ_ENDCHAR))
+                if (this->available())
                 {
-                    int rpm = this->interpretRpmFeedback(this->serialIn);
-                    this->clearSerialIn();
+                    int rpm = this->getRoboteqFeedback();
 
                     if (rpm != INT16_MIN && rpm < POSITION_CREEP_MIN_RPM)
                     {
@@ -226,17 +225,17 @@ char *MoveMotor::run()
                     }
 
                     // continue querying rpm
-                    this->send(QUERY_RPM RBTQ_ENDSTR);
+                    this->requestRpm();
                 }
 
                 // check if mode should be toggled
                 if (this->shouldCreepPosition)
                 {
                     // heavy brake
-                    this->send(MDEC HEAVY_DEC RBTQ_ENDSTR);
+                    this->setDeceleration(HIGH_DEC);
 
                     // change motor mode
-                    this->setMotorMode(POSITION);
+                    this->setMode(R_POSITION);
                     this->creepCount = 0;
                     this->lastCreepMillis = 0;
                     this->modeToggleMillis = millis();
@@ -251,51 +250,41 @@ char *MoveMotor::run()
                         this->leadingSensor = this->trailingSensor;
                         this->trailingSensor = temp;
                     }
-
-                    // create creep command string
-                    char directionalCreep[DEFAULT_CHARARR_BLOCK_SIZE];
-                    itoa((int)this->currentMovementDirection * atoi(CREEP_VALUE), directionalCreep, 10);
-
-                    strcpy(this->creepCommand, PR_MOVE);
-                    strcat(this->creepCommand, directionalCreep);
-                    strcat(this->creepCommand, RBTQ_ENDSTR);
                 }
             }
         }
 
         break;
     }
-    case POSITION:
+    case ENUM_ROBOTEQ_CONFIG::R_POSITION:
     {
         // use relative position mode to creep toward target slothole
         // Stop creeping once leading sensor has read out-hole to in-hole
         if (this->creepCount < DEFAULT_MAX_CREEPS)
         {
-            if ((this->lastCreepMillis == 0 && millis() - this->modeToggleMillis >= POSITION_INITIAL_CREEP_DELAY) || millis() - this->lastCreepMillis <= POSITION_CONTINUOUS_CREEP_DELAY)
+            if ((this->lastCreepMillis == 0 && millis() - this->modeToggleMillis >= POSITION_INITIAL_CREEP_DELAY) || millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
             {
                 if (this->lastCreepMillis == 0)
                     // disengage brakes
                     this->disengageBrake();
 
                 // continue creeping shuttle forward
-                if (strlen(this->creepCommand) == 0)
-                    return NAKSTR "No creep command created";
-                this->send(this->creepCommand);
+                this->setRelativePosition((int)this->currentMovementDirection * CREEP_VALUE);
                 this->lastCreepMillis = millis();
             }
 
             // look out for leading sensor in hole event
-            if (this->leadingSensor->run(IN_HOLE))
+            if (this->leadingSensor->run(IN_HOLE) || this->trailingSensor->run(IN_HOLE))
             {
                 Serial.println("Creeping found slothole");
                 // kinda helps to jam break the motor
-                this->setMotorMode(SPEED);
+                this->setMode(ENUM_ROBOTEQ_CONFIG::SPEED);
 
                 // no need to check for lastSlotholeArrival bool to prevent too many adjustments
                 this->onLastSlotholeArrival();
 
                 // movement is completed successfully
-                return this->notifySlotholeSuccessfulArrival();
+                return this->createSlotholeArriveSuccessStr();
             }
         }
         else
@@ -321,13 +310,14 @@ bool MoveMotor::moveTo(const char *slothole)
         return false;
 
     // set movement motor mode
-    this->setMotorMode(SPEED);
-    this->shouldCreepPosition = false;
+    this->setMode(ENUM_ROBOTEQ_CONFIG::SPEED);
 
     // initialize any movement variables
     // clear out last slothole timeout
     this->lastSlotholeMillis = DEFAULT_LAST_SLOTHOLE_MILLIS;
     this->isStopping = false;
+    // reset shuttle creep control variables
+    this->shouldCreepPosition = false;
     this->shouldReverseCreep = false;
 
     // determine direction
@@ -382,7 +372,7 @@ bool MoveMotor::moveTo(const char *slothole)
 void MoveMotor::cutShuttleSpeed()
 {
     // stop speed
-    this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
+    this->setSpeedPercent(0);
 };
 
 void MoveMotor::immediateStop()
@@ -391,10 +381,10 @@ void MoveMotor::immediateStop()
     this->engageBrake();
 
     // immediate deceleration
-    this->send(MDEC SPEED_IM_DEC RBTQ_ENDSTR);
+    this->setDeceleration(IM_DEC);
 
     // stop speed
-    this->send(SPEED_MOVE "0" RBTQ_ENDSTR);
+    this->setSpeedPercent(0);
 };
 
 void MoveMotor::updateCurrentSlothole(const char *slothole)
@@ -424,42 +414,8 @@ void MoveMotor::disengageBrake()
 // --------------------------------
 // MOVEMOTORPAIR PRIVATE METHODS
 // --------------------------------
-void MoveMotor::setMotorMode(ENUM_CLOSED_LOOP_MODES mode)
-{
-    // set mode
-    this->currentMotorMode = mode;
-    switch (this->currentMotorMode)
-    {
-    case ENUM_CLOSED_LOOP_MODES::SPEED:
-    {
-        // update motor mode
-        this->send(MMODE MODE_SPEED RBTQ_ENDSTR);
-        // update deceleration
-        this->send(MDEC SPEED_DEC RBTQ_ENDSTR);
-        // update PID
-        this->send(KP SPEED_KP RBTQ_ENDSTR);
-        this->send(KI SPEED_KI RBTQ_ENDSTR);
-        this->send(KD SPEED_KD RBTQ_ENDSTR);
-        break;
-    }
-    case ENUM_CLOSED_LOOP_MODES::POSITION:
-    {
-        // update motor mode
-        this->send(MMODE MODE_POSITION RBTQ_ENDSTR);
-        // update PID
-        this->send(KP POSITION_KP RBTQ_ENDSTR);
-        this->send(KI POSITION_KI RBTQ_ENDSTR);
-        this->send(KD POSITION_KD RBTQ_ENDSTR);
-        break;
-    }
-    default:
-        break;
-    }
-};
-
 void MoveMotor::updateMoveSpeed(int diff)
 {
-    char speedStr[DEFAULT_CHARARR_BLOCK_SIZE];
     int speed = 0;
 
     if (diff >= 22)
@@ -476,17 +432,8 @@ void MoveMotor::updateMoveSpeed(int diff)
     // implement movement direction
     speed *= this->currentMovementDirection;
 
-    // convert int to str
-    itoa(speed, speedStr, 10);
-
-    // output speed str
-    char mmCmd[DEFAULT_CHARARR_BLOCK_SIZE];
-    strcpy(mmCmd, SPEED_MOVE);
-    strcat(mmCmd, speedStr);
-    strcat(mmCmd, RBTQ_ENDSTR);
-
-    Serial.println(mmCmd);
-    this->send(mmCmd);
+    // update speed
+    this->setSpeedPercent(speed);
 };
 
 void MoveMotor::determineLastSlotholeTimeoutDuration()
@@ -519,19 +466,6 @@ void MoveMotor::determineLastSlotholeTimeoutDuration()
     Serial.println(this->lastSlotholeStopTimeoutDuration);
 };
 
-int MoveMotor::interpretRpmFeedback(const char *feedback)
-{
-    // extract and interpret RPM feedback
-    int valDelimiter = IDXOF(feedback, QUERY_DELIMITER);
-    if (valDelimiter == -1) // sometimes roboteq sends garbage like '+' char or strings with random control chars
-        return INT16_MIN;
-    char rpm[DEFAULT_CHARARR_BLOCK_SIZE];
-    SUBSTR(rpm, feedback, valDelimiter + 1);
-    int rpmInt = atoi(rpm);
-
-    return abs(rpmInt);
-};
-
 bool MoveMotor::onLastSlotholeArrival()
 {
     // stop shuttle
@@ -553,7 +487,7 @@ bool MoveMotor::onLastSlotholeArrival()
     return false;
 };
 
-char *MoveMotor::notifySlotholeSuccessfulArrival()
+char *MoveMotor::createSlotholeArriveSuccessStr()
 {
     static char slothole[DEFAULT_CHARARR_BLOCK_SIZE];
     itoa(this->currentSlothole, slothole, 10);

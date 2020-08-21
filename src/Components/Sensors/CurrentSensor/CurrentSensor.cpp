@@ -13,7 +13,8 @@ CurrentSensor::CurrentSensor(uint8_t id)
 {
     this->init(id);
     this->lastReadCurrentVal = 0.0;
-    this->lastReadVoltageVal = 0.0;
+    this->lastReadShuntVoltageVal = 0.0;
+    this->lastReadBusVoltageVal = 0.0;
 };
 
 void CurrentSensor::init(uint8_t id)
@@ -24,11 +25,9 @@ void CurrentSensor::init(uint8_t id)
 
 double CurrentSensor::readCurrent()
 {
-    double read = (double)this->sensor.getCurrent_mA();
+    double read = this->sensor.getCurrent_mA();
     if (read != this->lastReadCurrentVal)
     {
-        Serial.print("Current ");
-        Serial.println(read);
         this->lastReadCurrentVal = read;
     }
     return this->getLastReadCurrentVal();
@@ -39,23 +38,39 @@ double CurrentSensor::getLastReadCurrentVal()
     return this->lastReadCurrentVal;
 };
 
-double CurrentSensor::readVoltage()
+double CurrentSensor::readShuntVoltage()
 {
-    double read = (double)this->sensor.getShuntVoltage_mV();
-    double bus = (double)this->sensor.getBusVoltage_V();
-    if (read != this->lastReadVoltageVal)
+    double shunt = this->sensor.getShuntVoltage_mV();
+    if (shunt != this->lastReadShuntVoltageVal)
     {
-        Serial.print("voltage ");
-        Serial.println(read);
-        Serial.print("voltage bus ");
-        Serial.println(bus);
-        this->lastReadVoltageVal = read;
+        // Serial.print("Shunt Voltage ");
+        // Serial.println(shunt);
+        this->lastReadShuntVoltageVal = shunt;
     }
+    return shunt;
 };
 
-double CurrentSensor::getLastReadVoltageVal()
+double CurrentSensor::getLastReadShuntVoltageVal()
 {
-    return this->lastReadVoltageVal;
+    return this->lastReadShuntVoltageVal;
+};
+
+double CurrentSensor::readBusVoltage()
+{
+
+    double bus = (double)this->sensor.getBusVoltage_V();
+    if (bus != this->lastReadBusVoltageVal)
+    {
+        // Serial.print("Bus Voltage ");
+        // Serial.println(bus);
+        this->lastReadBusVoltageVal = bus;
+    }
+    return bus;
+};
+
+double CurrentSensor::getLastReadBusVoltageVal()
+{
+    return this->lastReadBusVoltageVal;
 };
 
 // --------------------------------

@@ -22,7 +22,22 @@ public:
     Finger();
     Finger(CurrentSensor *, int, int, int, int);
 
+    void resetAvgCurrentReadings();
+    void appendCurrentReading(double);
+    double getAvgCurrent();
+    void recordRetractionAvgCurrentRead();
+    double getRetractionAvgCurrentRead();
+
+    void setMovementStarted(bool);
+    bool getIsMovementStarted();
+
 private:
+    double avgCurrentDraw;
+    unsigned int totalCurrentReads;
+
+    double retractionAvgCurrentRead;
+
+    bool movementStarted;
 };
 
 class FingerPair
@@ -54,6 +69,10 @@ private:
     Finger rearFinger;
     int direction;
     unsigned int timeStart;
+
+private:
+    void initializeFingersBeforeMove();
+    ENUM_FINGER_MOVEMENT lastMovement;
 };
 
 #endif

@@ -50,11 +50,11 @@ private:
     CurrentSensor eStopCs;
 
     // arm assembly
-    CurrentSensor frontCs;
-    CurrentSensor rearCs;
-
     ArmMotor armMotor;
     ArmHoming armHoming;
+
+    CurrentSensor frontCs;
+    CurrentSensor rearCs;
     FingerPair leftFP;
     FingerPair rightFP;
 
