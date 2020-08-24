@@ -183,9 +183,9 @@ char *MoveMotor::run()
                 {
                     this->isStopping = true;
                     // cut shuttle speed
-                    this->cutShuttleSpeed();
+                    // this->cutShuttleSpeed();
                     // reduce deceleration to allow shuttle to free wheel towards slothole
-                    this->setDeceleration(LOW_DEC);
+                    // this->setDeceleration(LOW_DEC);
                     // start querying rpm
                     this->requestRpm();
                 }
@@ -218,10 +218,13 @@ char *MoveMotor::run()
                 {
                     int rpm = this->getRoboteqFeedback();
 
-                    if (rpm != INT16_MIN && rpm < POSITION_CREEP_MIN_RPM)
+                    if (rpm != INT16_MIN && rpm != INT16_MAX)
                     {
-                        Serial.println("rpm fell below min. Creeping shuttle towards slothole");
-                        this->shouldCreepPosition = true;
+                        if (rpm < POSITION_CREEP_MIN_RPM)
+                        {
+                            Serial.println("rpm fell below min. Creeping shuttle towards slothole");
+                            this->shouldCreepPosition = true;
+                        }
                     }
 
                     // continue querying rpm

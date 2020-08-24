@@ -58,12 +58,13 @@ bool ArmHoming::laserOff()
 
 bool ArmHoming::isClear()
 {
-    int leftRead = this->leftReceiver.dRead();
-    int rightRead = this->rightReceiver.dRead();
+    // int leftRead = this->leftReceiver.dRead();
+    // int rightRead = this->rightReceiver.dRead();
 
-    if (leftRead == LASER_READ && rightRead == LASER_READ)
-        return true;
-    return false;
+    // if (leftRead == LASER_READ && rightRead == LASER_READ)
+    //     return true;
+    // return false;
+    return true;
 };
 
 bool ArmHoming::startCheckingHome(const char *res)

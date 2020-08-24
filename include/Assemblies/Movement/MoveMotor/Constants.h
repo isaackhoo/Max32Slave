@@ -24,7 +24,7 @@
 // creeping
 #define POSITION_INITIAL_CREEP_DELAY 150
 #define CREEP_VALUE 1
-#define POSITION_CREEP_MIN_RPM 35
+#define POSITION_CREEP_MIN_RPM 0
 #define POSITION_CONTINUOUS_CREEP_DELAY 25
 #define DEFAULT_MAX_CREEPS 100
 
@@ -45,11 +45,16 @@ namespace MoveMotorConstants
 
     enum ENUM_LAST_SLOTHOLE_TIMEOUT_DURATION
     {
-        BATTERY_LIFTER = 1200,
-        LIFTER_BUFFER = 1200,
-        BUFFER_RACK = 900,
-        NEXT_COL_FIRST_SLOT = 500,
-        WITHIN_COL = 100,
+        // BATTERY_LIFTER = 1200,
+        // LIFTER_BUFFER = 1200,
+        // BUFFER_RACK = 1000,
+        // NEXT_COL_FIRST_SLOT = 750,
+        // WITHIN_COL = 200,
+        BATTERY_LIFTER = 0,
+        LIFTER_BUFFER = 0,
+        BUFFER_RACK = 0,
+        NEXT_COL_FIRST_SLOT = 0,
+        WITHIN_COL = 0,
     };
 }; // namespace MoveMotorConstants
 

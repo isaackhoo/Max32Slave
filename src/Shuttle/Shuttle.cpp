@@ -99,13 +99,15 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->rightFP.retract();
     this->leftFP.retract();
 
+    // home arm
+    this->armMotor.home();
+
     // off arm homing
     this->armHoming.laserOff();
 
     // ---------------------
     // test codes
     // ---------------------
-    this->onCommand(EXTEND_ARM, "300");
 
     return res;
 };
@@ -196,11 +198,7 @@ void Shuttle::run()
         break;
     }
 
-    if (res != NULL && this->currentStep == EXTEND_ARM)
-    {
-        this->onCommand(HOME_ARM, "0");
-    }
-    else if (res != NULL)
+    if (res != NULL)
         this->feedbackStepCompletion(res);
 };
 

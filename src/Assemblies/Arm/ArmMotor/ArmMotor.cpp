@@ -35,26 +35,32 @@ char *ArmMotor::run()
         if (this->available())
         {
             int absCount = this->getRoboteqFeedback(); // returns absolute value
+            if (absCount == INT16_MAX || absCount == INT16_MIN) // abs value overflows to negative min
+                return res;
             int direction = this->getRoboteqRawFeedback() < 0 ? -1 : 1;
             int directionalCount = absCount * direction;
 
-            int absMinLimit = abs(this->targetPositionCount) - ARM_POSITION_COUNT_TOLERANCE;
-            int absMaxLimit = abs(this->targetPositionCount) + ARM_POSITION_COUNT_TOLERANCE;
+            int limit1 = this->targetPositionCount - ARM_POSITION_COUNT_TOLERANCE;
+            int limit2 = this->targetPositionCount + ARM_POSITION_COUNT_TOLERANCE;
+
+            int minLimit = limit1 < limit2 ? limit1 : limit2;
+            int maxLimit = limit1 < limit2 ? limit2 : limit1;
+            int maxAbsLimit = abs(limit1) < abs(limit2) ? abs(limit2) : abs(limit1);
 
             // update last position read
-            if (absCount <= absMaxLimit)
+            if (directionalCount <= maxLimit)
             {
                 this->lastPositionCount = directionalCount;
             }
 
-            if (absCount >= absMinLimit && absCount <= absMaxLimit)
+            if (minLimit <= directionalCount && directionalCount <= maxLimit)
             {
                 // feed back that arm has reached position
                 static char armCount[DEFAULT_CHARARR_BLOCK_SIZE];
                 itoa(directionalCount, armCount, 10);
                 res = armCount;
             }
-            else if (!this->isHoming && absCount > absMinLimit)
+            else if (!this->isHoming && abs(directionalCount) > maxAbsLimit)
             {
                 res = NAKSTR "Arm over-extended";
             }
@@ -98,6 +104,9 @@ void ArmMotor::moveTo(const char *directionalDepth)
 
     // update target position
     this->targetPositionCount = count;
+
+    // start timing arm
+    this->timeStart = millis();
 
     // move arm
     this->setPositionCount(count);

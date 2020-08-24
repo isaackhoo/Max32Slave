@@ -11,7 +11,7 @@
 #define MODE_POSITION "3"
 
 #define MDEC "^MDEC "
-#define LOW_DEC "800"
+#define LOW_DEC "600"
 #define MID_DEC "3000"
 #define HIGH_DEC "8000"
 #define IM_DEC "30000"
