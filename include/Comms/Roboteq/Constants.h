@@ -38,6 +38,9 @@
 #define QUERY_RPM "?BS"
 #define QUERY_POSITION_COUNT "?CB"
 #define QUERY_DELIMITER '='
+#define QUERY_BATT_DELIMITER ':'
+
+#define QUERY_BATTERY "?V"
 
 namespace RoboteqConstants
 {

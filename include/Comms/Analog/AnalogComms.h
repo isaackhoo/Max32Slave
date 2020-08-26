@@ -9,8 +9,8 @@ class AnalogComms
 {
 public:
     AnalogComms();
-    AnalogComms(int);
-    void init(int);
+    AnalogComms(int, int);
+    void init(int, int);
 
     double aRead();
 

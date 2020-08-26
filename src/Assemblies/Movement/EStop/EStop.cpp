@@ -9,7 +9,9 @@
 // --------------------------------
 EStop::EStop(){};
 
-EStop::EStop(int aPin, int dP1, int dP2, int pwrPin, int pwmPin) : AnalogComms(aPin), DCMotor(dP1, dP2, pwrPin, pwmPin){};
+EStop::EStop(int aPin, int dP1, int dP2, int pwrPin, int pwmPin) : AnalogComms(aPin, INPUT), DCMotor(dP1, dP2, pwrPin, pwmPin)
+{
+};
 
 char *EStop::run()
 {
@@ -58,18 +60,14 @@ void EStop::extend()
 {
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_EXTEND;
     this->timeStart = millis();
-    DCMotor::stop();
     DCMotor::extend();
-    Serial.println("extend method called");
 };
 
 void EStop::retract()
 {
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_RETRACT;
     this->timeStart = millis();
-    DCMotor::stop();
     DCMotor::retract();
-    Serial.println("retract method called");
 };
 
 // --------------------------------

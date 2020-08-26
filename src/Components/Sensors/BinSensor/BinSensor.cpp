@@ -9,7 +9,7 @@
 // --------------------------------
 BinSensor::BinSensor(){};
 
-BinSensor::BinSensor(int aPin) : AnalogComms(aPin){};
+BinSensor::BinSensor(int aPin) : AnalogComms(aPin, INPUT){};
 
 char *BinSensor::run()
 {

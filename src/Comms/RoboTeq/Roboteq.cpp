@@ -181,6 +181,11 @@ bool Roboteq::setPositionCount(int count)
     return true;
 };
 
+void Roboteq::requestBatteryLevel()
+{
+    this->send(QUERY_BATTERY RBTQ_ENDSTR);
+};
+
 // --------------------------------
 // ROBOTEQ PRIVATE VARIABLES
 // --------------------------------

@@ -42,7 +42,7 @@ bool SerialComms::read(const char END_CHAR)
             strcat(this->serialIn, buf);
         else
             strcpy(this->serialIn, buf);
-
+            
         return true;
     };
     return false;

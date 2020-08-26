@@ -9,15 +9,16 @@
 // --------------------------------
 AnalogComms::AnalogComms(){};
 
-AnalogComms::AnalogComms(int pin)
+AnalogComms::AnalogComms(int pin, int io)
 {
-    this->init(pin);
+    this->init(pin, io);
 };
 
-void AnalogComms::init(int pin)
+void AnalogComms::init(int pin, int io)
 {
     this->pin = (uint8_t)pin;
     this->lastReadVal = 0.00;
+    pinMode(this->pin, io);
 };
 
 double AnalogComms::aRead()

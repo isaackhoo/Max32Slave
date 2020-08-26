@@ -43,6 +43,9 @@ public:
     // position count controls
     bool setPositionCount(int);
 
+    // battery
+    void requestBatteryLevel();
+
 private:
     ENUM_ROBOTEQ_CONFIG currentMode;
 

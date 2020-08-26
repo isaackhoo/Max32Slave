@@ -44,6 +44,11 @@ void HBridge::switchLL()
     this->lane2.dWriteLow();
 };
 
+int HBridge::readPwm()
+{
+    return this->pwm.dRead();
+};
+
 // --------------------------------
 // HBRIDGE PRIVATE VARIABLES
 // --------------------------------

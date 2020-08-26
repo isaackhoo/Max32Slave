@@ -24,6 +24,7 @@
 // accessories
 #include "Components/Sensors/BinSensor/BinSensor.h"
 #include "Components/Power/Power.h"
+#include "Comms/RoboTeq/Roboteq.h"
 
 using namespace ShuttleConstants;
 using namespace MasterConstants;
@@ -46,7 +47,8 @@ public:
 private:
     // movement assembly
     MoveMotor moveMotor;
-    EStop eStop;
+    EStop eStopL;
+    EStop eStopR;
     CurrentSensor eStopCs;
 
     // arm assembly
@@ -69,8 +71,11 @@ private:
     ENUM_MASTER_ACTIONS currentStep;
     char currentStepInstructions[DEFAULT_CHARARR_BLOCK_SIZE];
 
+    bool isRequestingBattery;
+
 private:
     void feedbackStepCompletion(const char *);
+    void requestBatteryLevel();
 };
 
 extern Shuttle shuttle;

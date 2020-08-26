@@ -31,12 +31,18 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
         BRAKE_PIN_2,
         BRAKE_PIN_PWRPASSTRU,
         BRAKE_PIN_PWM);
-    this->eStop = EStop(
-        ESTOP_PIN_READ,
-        ESTOP_PIN_1,
-        ESTOP_PIN_2,
+    this->eStopL = EStop(
+        ESTOP_L_PIN_READ,
+        ESTOP_L_PIN_1,
+        ESTOP_L_PIN_2,
         ESTOP_PIN_POWER,
-        ESTOP_PIN_PWN);
+        ESTOP_L_PIN_PWM);
+    this->eStopR = EStop(
+        ESTOP_R_PIN_READ,
+        ESTOP_R_PIN_1,
+        ESTOP_R_PIN_2,
+        ESTOP_PIN_POWER,
+        ESTOP_R_PIN_PWM);
     this->eStopCs = CurrentSensor(CS_ESTOP);
 
     // initialize arm assembly
@@ -105,9 +111,16 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // off arm homing
     this->armHoming.laserOff();
 
+    // battery
+    this->isRequestingBattery = false;
+
     // ---------------------
     // test codes
     // ---------------------
+    this->eStopL.extend();
+    delay(4000);
+    this->eStopL.retract();
+    delay(4000);
 
     return res;
 };
@@ -122,7 +135,7 @@ void Shuttle::run()
     case ENGAGE_ESTOP:
     case DISENGAGE_ESTOP:
     {
-        res = this->eStop.run();
+        res = this->eStopL.run();
         if (res == NULL)
         {
             this->eStopCs.readShuntVoltage();
@@ -198,6 +211,25 @@ void Shuttle::run()
         break;
     }
 
+    // check for battery
+    if (this->isRequestingBattery)
+    {
+        if (this->moveMotor.available())
+        {
+            // int batteryLevel = this->batteryWatchDog.getRoboteqRawFeedback();
+            char *battery = this->moveMotor.serialIn;
+            this->isRequestingBattery = false;
+
+            int firstDeli = IDXOF(battery, QUERY_BATT_DELIMITER);
+            int nextDeli = IDXOF(battery, QUERY_BATT_DELIMITER, firstDeli + 1);
+            char res[DEFAULT_CHARARR_BLOCK_SIZE];
+            SUBSTR(res, battery, firstDeli + 1, nextDeli);
+
+            logger.log(res);
+            this->moveMotor.clearSerialIn();
+        }
+    }
+
     if (res != NULL)
         this->feedbackStepCompletion(res);
 };
@@ -222,12 +254,12 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     {
     case ENGAGE_ESTOP:
     {
-        this->eStop.extend();
+        this->eStopL.extend();
         break;
     }
     case DISENGAGE_ESTOP:
     {
-        this->eStop.retract();
+        this->eStopL.retract();
         break;
     }
     case MOVETO:
@@ -363,4 +395,10 @@ void Shuttle::feedbackStepCompletion(const char *res)
 
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
+};
+
+void Shuttle::requestBatteryLevel()
+{
+    this->isRequestingBattery = true;
+    this->moveMotor.requestBatteryLevel();
 };

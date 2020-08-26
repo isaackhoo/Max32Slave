@@ -4,9 +4,8 @@
 #define SHUTTLE_CONSTANTS_H
 
 // Analog Pins
-// #define ESTOP_PIN_READ  57
-
-#define ESTOP_PIN_READ 56
+#define ESTOP_L_PIN_READ  57
+#define ESTOP_R_PIN_READ 56
 
 #define BINSENSOR_PIN_LEFT 54
 #define BINSENSOR_PIN_RIGHT 55
@@ -20,15 +19,15 @@
 #define BRAKE_PIN_PWRPASSTRU 47
 #define BRAKE_PIN_PWM 49
 
-// #define ESTOP_PIN_1  45
-// #define ESTOP_PIN_2  46
-// #define ESTOP_PIN_POWER  65
-// #define ESTOP_PIN_PWN 67
+#define ESTOP_PIN_POWER  65
 
-#define ESTOP_PIN_1 78
-#define ESTOP_PIN_2 44
-#define ESTOP_PIN_POWER 65
-#define ESTOP_PIN_PWN 66
+#define ESTOP_L_PIN_1  45
+#define ESTOP_L_PIN_2  46
+#define ESTOP_L_PIN_PWM 67
+
+#define ESTOP_R_PIN_1 78
+#define ESTOP_R_PIN_2 44
+#define ESTOP_R_PIN_PWM 66
 
 #define ARMHOMING_READ_PIN_LEFT 2
 #define ARMHOMING_LASER_PIN_LEFT 4
