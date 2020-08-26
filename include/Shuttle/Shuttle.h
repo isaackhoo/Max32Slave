@@ -71,11 +71,8 @@ private:
     ENUM_MASTER_ACTIONS currentStep;
     char currentStepInstructions[DEFAULT_CHARARR_BLOCK_SIZE];
 
-    bool isRequestingBattery;
-
 private:
     void feedbackStepCompletion(const char *);
-    void requestBatteryLevel();
 };
 
 extern Shuttle shuttle;

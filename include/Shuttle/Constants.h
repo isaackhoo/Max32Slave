@@ -60,6 +60,10 @@
 #define CS_ARMHOMING_LEFT 0x43
 #define CS_ARMHOMING_RIGHT 0x4C
 
+// Battery
+#define BATTERY_MAX_V 280
+#define BATTERY_MIN_V 200
+
 namespace ShuttleConstants
 {
     enum ENUM_EXTENSION_DIRECTION
@@ -67,10 +71,6 @@ namespace ShuttleConstants
         LEFT = -1,
         RIGHT = 1,
         Num_Extension_Directions = 2
-    };
-    const String EnumExtensionDirectionString[(int)Num_Extension_Directions] = {
-        "LEFT",
-        "RIGHT",
     };
 }; // namespace ShuttleConstants
 

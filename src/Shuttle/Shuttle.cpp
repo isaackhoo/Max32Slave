@@ -111,16 +111,9 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // off arm homing
     this->armHoming.laserOff();
 
-    // battery
-    this->isRequestingBattery = false;
-
     // ---------------------
     // test codes
     // ---------------------
-    this->eStopL.extend();
-    delay(4000);
-    this->eStopL.retract();
-    delay(4000);
 
     return res;
 };
@@ -148,10 +141,6 @@ void Shuttle::run()
         res = this->moveMotor.run();
         break;
     }
-    // case READ_BIN_SENSOR:
-    // {
-    //     break;
-    // }
     case EXTEND_ARM:
     {
         res = this->armMotor.run();
@@ -205,29 +194,26 @@ void Shuttle::run()
     }
     case SLAVE_BATTERY:
     {
+        // taps on move motor to communicate with roboteq to get battery readings
+        if (this->moveMotor.available())
+        {
+            // retreive voltage reading
+            int voltageReading = this->moveMotor.getRoboteqFeedback();
+            if (voltageReading > BATTERY_MAX_V)
+                voltageReading = BATTERY_MAX_V;
+
+            // convert voltage reading to percentage result
+            int percentage = ((voltageReading - BATTERY_MIN_V) / (BATTERY_MAX_V - BATTERY_MIN_V)) * 1000;
+
+            // convert percentage to string
+            static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE];
+            itoa(percentage, percentageStr, 10);
+            res = percentageStr;
+        }
         break;
     }
     default:
         break;
-    }
-
-    // check for battery
-    if (this->isRequestingBattery)
-    {
-        if (this->moveMotor.available())
-        {
-            // int batteryLevel = this->batteryWatchDog.getRoboteqRawFeedback();
-            char *battery = this->moveMotor.serialIn;
-            this->isRequestingBattery = false;
-
-            int firstDeli = IDXOF(battery, QUERY_BATT_DELIMITER);
-            int nextDeli = IDXOF(battery, QUERY_BATT_DELIMITER, firstDeli + 1);
-            char res[DEFAULT_CHARARR_BLOCK_SIZE];
-            SUBSTR(res, battery, firstDeli + 1, nextDeli);
-
-            logger.log(res);
-            this->moveMotor.clearSerialIn();
-        }
     }
 
     if (res != NULL)
@@ -246,6 +232,14 @@ void Shuttle::setCurrentSlothole(const char *slothole)
 
 void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 {
+    // reject command if shuttle is busy
+    if (this->currentStep != Num_Master_Actions_Enums)
+    {
+        char *reason = NAKSTR "Slave is busy with another request";
+        this->masterInstance->onStepCompletion(action, reason);
+        return;
+    }
+
     // record new step to perform
     this->currentStep = action;
     strcpy(this->currentStepInstructions, inst);
@@ -374,6 +368,8 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case SLAVE_BATTERY:
     {
+        // taps on movemotor to communicate with roboteq to get battery readings
+        this->moveMotor.requestBatteryLevel();
         break;
     }
     default:
@@ -395,10 +391,4 @@ void Shuttle::feedbackStepCompletion(const char *res)
 
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
-};
-
-void Shuttle::requestBatteryLevel()
-{
-    this->isRequestingBattery = true;
-    this->moveMotor.requestBatteryLevel();
 };

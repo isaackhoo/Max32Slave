@@ -4,6 +4,7 @@
 #define ROBOTEQ_H
 
 #include <Arduino.h>
+#include <stdlib.h>
 #include "Comms/Serial/SerialComms.h"
 #include "Comms/Roboteq/Constants.h"
 #include "Helper/Helper.h"

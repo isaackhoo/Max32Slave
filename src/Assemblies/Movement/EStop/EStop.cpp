@@ -20,7 +20,7 @@ char *EStop::run()
     if (millis() - this->timeStart <= ESTOP_TIMEOUT_DURATION)
     {
         double extensionValue = this->aRead();
-        char resStr[DEFAULT_CHARARR_BLOCK_SIZE];
+        static char resStr[DEFAULT_CHARARR_BLOCK_SIZE];
 
         switch (this->lastInstructions)
         {

@@ -195,15 +195,50 @@ void Roboteq::requestBatteryLevel()
 // --------------------------------
 int Roboteq::interpretFeedback()
 {
-    // extract and interpret RPM feedback
-    int valDelimiter = IDXOF(this->serialIn, QUERY_DELIMITER);
-    if (valDelimiter == -1) // sometimes roboteq sends garbage like '+' char or strings with random control chars
-        return INT16_MIN;
-    char val[DEFAULT_CHARARR_BLOCK_SIZE];
-    SUBSTR(val, this->serialIn, valDelimiter + 1);
-    int res = atoi(val);
+    // extract and interpret feedback
+    int res = INT16_MIN;
+    bool isCountFeedback = true;
+    char resStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
 
-    this->rawFeedback = res;
+    // determine if feedback is rpm/motorcount or battery
+    int countDelimiter = IDXOF(this->serialIn, QUERY_DELIMITER);
+    if (countDelimiter == -1)
+        // sometimes roboteq sends garbage like '+' char or strings with random control chars
+        // or could be battery feedback
+        isCountFeedback = false;
+
+    if (isCountFeedback)
+    {
+        // retrieve rpm / motor count reading
+        SUBSTR(resStr, this->serialIn, countDelimiter + 1);
+    }
+    else
+    {
+        int firstBattDeli = IDXOF(this->serialIn, QUERY_BATT_DELIMITER);
+        int secondBattDeli = IDXOF(this->serialIn, QUERY_BATT_DELIMITER, firstBattDeli + 1);
+
+        if (firstBattDeli != -1 && secondBattDeli != -1)
+        {
+            // valid battery reading
+            // retrieve battery reading
+            SUBSTR(resStr, this->serialIn, firstBattDeli + 1, secondBattDeli);
+        }
+    }
+
+    if (strlen(resStr) > 0)
+    {
+        // a valid result was retrieved
+        this->rawFeedback = atoi(resStr);
+        res = abs(this->rawFeedback);
+    }
+
+    // if (valDelimiter == -1)
+    //     return INT16_MIN;
+    // char val[DEFAULT_CHARARR_BLOCK_SIZE];
+    // SUBSTR(val, this->serialIn, valDelimiter + 1);
+    // int res = atoi(val);
+
+    // this->rawFeedback = res;
 
     return abs(res);
 };
