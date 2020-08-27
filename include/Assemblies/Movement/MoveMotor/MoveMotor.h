@@ -71,7 +71,6 @@ private:
     unsigned int modeToggleMillis;
     bool shouldReverseCreep;
 
-    bool shouldCreepPosition;
     int creepCount;
     unsigned int lastCreepMillis;
 
