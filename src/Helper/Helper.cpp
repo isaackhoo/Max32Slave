@@ -76,6 +76,41 @@ namespace Helper
         return SUBSTR(out, in, from, strlen(in));
     };
 
+    // searches for the string sfind in the string str
+    // returns 1 if string found
+    // returns 0 if string not found
+    int STRCONTAINS(char *str, char *sfind)
+    {
+        char found = 0;
+        char index = 0;
+        char len;
+
+        len = strlen(str);
+
+        if (strlen(sfind) > len)
+        {
+            return 0;
+        }
+        while (index < len)
+        {
+            if (str[index] == sfind[found])
+            {
+                found++;
+                if (strlen(sfind) == found)
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                found = 0;
+            }
+            index++;
+        }
+
+        return 0;
+    }
+
     char *GEN_UUID()
     {
         // creates a 5 digit alphanumeric c-str

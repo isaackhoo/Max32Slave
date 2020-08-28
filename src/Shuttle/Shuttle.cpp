@@ -203,6 +203,9 @@ void Shuttle::run()
         {
             // retreive voltage reading
             int voltageReading = this->moveMotor.getRoboteqFeedback();
+            if (voltageReading == INT16_MIN)
+                break;
+
             if (voltageReading > BATTERY_MAX_V)
                 voltageReading = BATTERY_MAX_V;
 
@@ -230,7 +233,7 @@ void Shuttle::run()
             Serial.println(percentage);
 
             // convert percentage to string
-            static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE];
+            static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
             itoa(percentage, percentageStr, 10);
             res = percentageStr;
         }

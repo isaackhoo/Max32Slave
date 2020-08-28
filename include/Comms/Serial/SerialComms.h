@@ -12,7 +12,7 @@ using namespace SerialCommsConstants;
 class SerialComms
 {
 public:
-    char serialIn[DEFAULT_CHARARR_BLOCK_SIZE];
+    char serialIn[DEFAULT_CHARARR_BLOCK_SIZE * 8];
 
 public:
     SerialComms();

@@ -105,8 +105,10 @@ void Master::run()
 {
     // check for master serial msg
     if (this->serial.read(EOT))
+    {
+        this->lastMessageReceivedMillis = millis();
         this->extractSerialInput();
-
+    }
     // check for pings
     this->runPing();
 
@@ -263,6 +265,10 @@ void Master::updatePingReceived()
 
 void Master::extractSerialInput()
 {
+    // checks for master reset event
+    if (STRCONTAINS(this->serial.serialIn, MASTER_RESET_SIGNAL))
+        executeSoftReset(RUN_SKETCH_ON_BOOT);
+
     // string is read until EOT. EOT char is not part of string
     int sohIdx = IDXOF(this->serial.serialIn, SOH);
     int etxIdx = IDXOF(this->serial.serialIn, ETX, sohIdx + 1);

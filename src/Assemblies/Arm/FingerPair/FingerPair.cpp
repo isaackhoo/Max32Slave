@@ -111,10 +111,12 @@ char *FingerPair::run()
         // check that finger movement started
         if (!this->frontFinger.getIsMovementStarted())
             if (frontCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                Serial.println("Front finger started moving");
                 this->frontFinger.setMovementStarted(true);
 
         if (!this->rearFinger.getIsMovementStarted())
             if (rearCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                Serial.println("Back finger started moving");
                 this->rearFinger.setMovementStarted(true);
 
         if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)

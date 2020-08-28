@@ -19,6 +19,8 @@ namespace Helper
     extern int SUBSTR(char *, const char *, int, int);
     extern int SUBSTR(char *, const char *, int);
 
+    extern int STRCONTAINS(char *, char *);
+
     extern char *GEN_UUID();
 }; // namespace Helper
 

@@ -12,6 +12,8 @@
 #include "Logger/Logger.h"
 #include "Shuttle/Shuttle.h"
 
+#define MASTER_RESET_SIGNAL "POWERON_RESET"
+
 using namespace MasterConstants;
 using namespace Helper;
 
@@ -66,6 +68,8 @@ private:
     bool pongChecked;
     unsigned int lastPingMillis;
     unsigned int droppedPings;
+
+    unsigned int lastMessageReceivedMillis;
 
 private:
     bool send(const char *, bool, bool);
