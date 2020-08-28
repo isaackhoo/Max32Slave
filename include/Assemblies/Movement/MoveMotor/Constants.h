@@ -26,7 +26,7 @@
 #define CREEP_VALUE 1
 #define POSITION_CREEP_MIN_RPM 0
 #define POSITION_CONTINUOUS_CREEP_DELAY 25
-#define DEFAULT_MAX_CREEPS 100
+#define DEFAULT_MAX_CREEPS 200
 
 namespace MoveMotorConstants
 {

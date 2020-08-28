@@ -36,7 +36,8 @@ void setup()
   else
     logger.log("Slave chip initialized");
 
-  //shuttle.onCommand(ENUM_MASTER_ACTIONS::DISENGAGE_ESTOP, "35");
+  delay(3000);
+  shuttle.onCommand(ENUM_MASTER_ACTIONS::EXTEND_FINGER_PAIR, "-1");
 }
 
 void loop()

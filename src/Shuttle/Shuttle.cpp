@@ -117,6 +117,10 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // ---------------------
     // test codes
     // ---------------------
+    // this->leftFP.extend();
+    // delay(3000);
+    // this->leftFP.retract();
+    // delay(3000);
 
     return res;
 };

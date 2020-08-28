@@ -138,40 +138,66 @@ char *MoveMotor::run()
             // determine which sensor it is
             if (this->readingSensor == this->trailingSensor)
             {
+                Serial.print("Trailing sensor out-hole event: ");
+                Serial.println(this->readingSensor->getCount());
+
                 // update movement speed - increase or decrease speeds based on distance from target
                 this->updateMoveSpeed(abs(this->trailingSensor->getCount() - this->targetSlothole));
 
                 // check if last slothole has been scanned
                 // prepare to stop shuttle if it has
-                if (this->readingSensor->getCount() == this->targetSlothole)
+                if (this->trailingSensor->getCount() == this->targetSlothole)
                 {
                     this->isStopping = true;
                 }
             }
             else if (this->readingSensor == this->leadingSensor)
             {
+                Serial.print("Leading sensor out-hole event: ");
+                Serial.println(this->readingSensor->getCount());
+
                 // verify that counts match up with trailing sensor
                 if (this->leadingSensor->getCount() != this->trailingSensor->getCount())
                 {
+                    Serial.println("!!! count mismatch detected !!!");
+                    Serial.print("Leading ");
+                    Serial.print(this->leadingSensor->getCount());
+                    Serial.print(" Trailing ");
+                    Serial.println(this->trailingSensor->getCount());
+
                     if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::FORWARD)
                     {
+                        Serial.print("[Resolving forward] ");
                         // trailing count should be >= leading count
                         if (this->trailingSensor->getCount() < this->leadingSensor->getCount())
+                        {
+                            Serial.println("trailing < leading");
                             // force trailing count to be leading count
                             this->trailingSensor->setCounter(this->leadingSensor->getCount());
+                        }
                         else
+                        {
+                            Serial.println("trailing > leading");
                             // force leading count to be trailing count
                             this->leadingSensor->setCounter(this->trailingSensor->getCount());
+                        }
                     }
                     else if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::REVERSE)
                     {
+                        Serial.print("[Resolving forward] ");
                         // trailing count should be <= leading count
                         if (this->trailingSensor->getCount() > this->leadingSensor->getCount())
+                        {
+                            Serial.println("trailing > leading");
                             // force trailing count to be elading count
                             this->trailingSensor->setCounter(this->leadingSensor->getCount());
+                        }
                         else
+                        {
+                            Serial.println("trailing < leading");
                             // force leading count to be trailing count
                             this->leadingSensor->setCounter(this->trailingSensor->getCount());
+                        }
                     }
                 }
 
@@ -227,9 +253,6 @@ char *MoveMotor::run()
             // creep shuttle forward after every delay
             if (millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
             {
-                // update last creep millis
-                this->lastCreepMillis = millis();
-
                 // disengage brakes if its the first creep
                 if (this->lastCreepMillis == 0)
                     this->disengageBrake();
@@ -239,6 +262,9 @@ char *MoveMotor::run()
 
                 // update creep count
                 this->creepCount += 1;
+
+                // update last creep millis
+                this->lastCreepMillis = millis();
             };
 
             // look out for either sensor in-hole event
@@ -610,12 +636,25 @@ bool MoveMotor::onLastSlotholeArrival()
     // stop shuttle
     this->immediateStop();
 
+    Serial.println("terminating movement");
+
     // update leading sensor count
     if (this->leadingSensor->getCount() != this->trailingSensor->getCount())
+    {
+        Serial.print("updating leading sensor count from ");
+        Serial.print(this->leadingSensor->getCount());
+        Serial.print(" to ");
+        Serial.println(this->trailingSensor->getCount());
         this->leadingSensor->setCounter(this->trailingSensor->getCount());
+    }
 
     // update current slothole
     this->currentSlothole = this->trailingSensor->getCount();
+    Serial.print("MoveMotor current slothole count updated to ");
+    Serial.println(this->currentSlothole);
+
+    // give shuttle time to settle
+    delay(150);
 
     // check if at least one of the sensors are in hole
     if (this->leadingSensor->dRead() == IN_HOLE || this->trailingSensor->dRead() == IN_HOLE)

@@ -102,6 +102,11 @@ char *FingerPair::run()
         double frontCurrent = this->frontFinger.cs->readCurrent();
         double rearCurrent = this->rearFinger.cs->readCurrent();
 
+        Serial.print("front: ");
+        Serial.print(frontCurrent);
+        Serial.print(" rear: ");
+        Serial.println(rearCurrent);
+
         // record finger average current draw during movement
         if (frontCurrent > FINGER_CURRENT_THRESHOLD)
             this->frontFinger.appendCurrentReading(frontCurrent);
@@ -111,16 +116,24 @@ char *FingerPair::run()
         // check that finger movement started
         if (!this->frontFinger.getIsMovementStarted())
             if (frontCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
-                Serial.println("Front finger started moving");
                 this->frontFinger.setMovementStarted(true);
 
         if (!this->rearFinger.getIsMovementStarted())
             if (rearCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
-                Serial.println("Back finger started moving");
                 this->rearFinger.setMovementStarted(true);
 
         if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
         {
+            Serial.print("both currents below threshold");
+
+            Serial.print("front: ");
+            Serial.print(frontCurrent);
+            Serial.print(" rear: ");
+            Serial.println(rearCurrent);
+
+            Serial.print("timeout difference ");
+            Serial.println(millisDiff);
+
             static char result[DEFAULT_CHARARR_BLOCK_SIZE];
             itoa(this->direction, result, 10);
             res = result;
@@ -133,6 +146,9 @@ char *FingerPair::run()
     else if (millisDiff > FINGER_TIMEOUT_DURATION)
     {
         res = NAKSTR "Finger timed out";
+
+        Serial.print("timeout difference ");
+        Serial.println(millisDiff);
 
         if (this->lastMovement == FINGER_EXTENSION)
             this->retract();

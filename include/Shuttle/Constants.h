@@ -54,8 +54,8 @@
 #define POWER_PIN_24V 77
 
 // Current Sensors
-#define CS_ID_FRONT 0x45
-#define CS_ID_REAR 0x41
+#define CS_ID_FRONT 0x41
+#define CS_ID_REAR 0x45
 #define CS_ESTOP 0x44
 #define CS_ARMHOMING_LEFT 0x43
 #define CS_ARMHOMING_RIGHT 0x4C
