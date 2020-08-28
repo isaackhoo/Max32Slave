@@ -111,6 +111,9 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // off arm homing
     this->armHoming.laserOff();
 
+    // estop
+    this->eStopL.retract(); // TODO: change to extend
+
     // ---------------------
     // test codes
     // ---------------------
@@ -151,21 +154,22 @@ void Shuttle::run()
         if (!this->armHoming.getIsCheckingHome())
         {
             res = this->armMotor.run();
-            if (res != NULL)
-            {
-                this->armHoming.startCheckingHome(res);
-                res = NULL;
-            }
+            // if (res != NULL)
+            // {
+            //     this->armHoming.startCheckingHome(res);
+            //     res = NULL;
+            // }
+            this->armHoming.clearIsCheckingHome();
         }
-        else
-        {
-            // check that arm is home
-            res = this->armHoming.run();
-            if (res != NULL)
-            {
-                this->armHoming.clearIsCheckingHome();
-            }
-        }
+        // else
+        // {
+        //     // check that arm is home
+        //     res = this->armHoming.run();
+        //     if (res != NULL)
+        //     {
+        //         this->armHoming.clearIsCheckingHome();
+        //     }
+        // }
         break;
     }
     case EXTEND_FINGER_PAIR:
@@ -202,8 +206,28 @@ void Shuttle::run()
             if (voltageReading > BATTERY_MAX_V)
                 voltageReading = BATTERY_MAX_V;
 
+            Serial.print("voltage reading ");
+            Serial.println(voltageReading);
+
+            Serial.print("min ");
+            Serial.println(BATTERY_MIN_V);
+            Serial.print("max ");
+            Serial.println(BATTERY_MAX_V);
+
+            Serial.print("numerator ");
+            Serial.println((voltageReading - BATTERY_MIN_V));
+            Serial.print("demoninator ");
+            Serial.println((BATTERY_MAX_V - BATTERY_MIN_V));
+
             // convert voltage reading to percentage result
-            int percentage = ((voltageReading - BATTERY_MIN_V) / (BATTERY_MAX_V - BATTERY_MIN_V)) * 1000;
+            double percDouble = (((double)voltageReading - BATTERY_MIN_V) / (BATTERY_MAX_V - BATTERY_MIN_V));
+            Serial.print("percDouble ");
+            Serial.println(percDouble);
+
+            int percentage = (int)(percDouble * 1000);
+
+            Serial.print("percentage ");
+            Serial.println(percentage);
 
             // convert percentage to string
             static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE];
@@ -232,10 +256,10 @@ void Shuttle::setCurrentSlothole(const char *slothole)
 
 void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
 {
-    // reject command if shuttle is busy
-    if (this->currentStep != Num_Master_Actions_Enums)
+    // reject battery command if shuttle is busy
+    if (action == SLAVE_BATTERY && this->currentStep != Num_Master_Actions_Enums)
     {
-        char *reason = NAKSTR "Slave is busy with another request";
+        char *reason = NAKSTR "Slave chip busy.";
         this->masterInstance->onStepCompletion(action, reason);
         return;
     }

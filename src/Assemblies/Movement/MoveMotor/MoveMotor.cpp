@@ -73,12 +73,12 @@ void MoveSensor::setCounter(int count)
 
 void MoveSensor::incrementCounter()
 {
-    this->counter = ++this->counter;
+    this->counter += 1;
 };
 
 void MoveSensor::decrementCounter()
 {
-    this->counter = --this->counter;
+    this->counter -= 1;
 };
 
 int MoveSensor::getCount() { return this->counter; };

@@ -28,7 +28,7 @@ char *EStop::run()
         {
             if (extensionValue >= ESTOP_EXTENDED)
             {
-                itoa((int)this->lastInstructions, resStr, 10);
+                itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
 
@@ -38,7 +38,7 @@ char *EStop::run()
         {
             if (extensionValue <= ESTOP_RETRACTED)
             {
-                itoa((int)this->lastInstructions, resStr, 10);
+                itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
             break;

@@ -234,7 +234,7 @@ void Master::runPing()
             {
                 // ping was not replied
                 if (this->droppedPings < MAX_PINGS_DROPPED)
-                    ++this->droppedPings;
+                    this->droppedPings += 1;
                 else
                 {
                     logger.log("Max pings dropped.", false);
@@ -386,6 +386,11 @@ void Master::perform(MasterComms input)
 
         // begin pings
         this->startPings();
+        break;
+    }
+    case SLAVE_RESET:
+    {
+        executeSoftReset(RUN_SKETCH_ON_BOOT);
         break;
     }
     case SLAVE_ECHO:

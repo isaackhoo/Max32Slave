@@ -35,6 +35,8 @@ void setup()
   }
   else
     logger.log("Slave chip initialized");
+
+  //shuttle.onCommand(ENUM_MASTER_ACTIONS::DISENGAGE_ESTOP, "35");
 }
 
 void loop()

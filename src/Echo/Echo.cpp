@@ -44,7 +44,7 @@ bool EchoNode::verify(const char *uuid)
 
 void EchoNode::incrementDropCount()
 {
-    ++this->dropCount;
+    this->dropCount += 1;
 };
 
 void EchoNode::updateTimeSent(unsigned int timeSent)
@@ -122,7 +122,7 @@ bool EchoBroker::verify(const char *uuid)
             res = true;
             break;
         }
-        ++offset;
+        offset += 1;
     }
     return res;
 };
@@ -147,7 +147,7 @@ int EchoBroker::run()
                 {
                     // increment echo's drop count
                     node->incrementDropCount();
-                    ++droppedEchos;
+                    droppedEchos += 1;
 
                     // update dropped echo timing
                     node->updateTimeSent(currentMillis);
@@ -155,7 +155,7 @@ int EchoBroker::run()
                     // add string to send to dropped echos
                     strcpy(this->droppedEchos[this->freeDroppedPtr], node->getMessage());
                     // move pointer
-                    ++this->freeDroppedPtr;
+                    this->freeDroppedPtr += 1;
                 }
                 else
                 {
@@ -165,7 +165,7 @@ int EchoBroker::run()
                 }
             }
         }
-        ++offset;
+        offset += 1;
     }
 
     return droppedEchos;
@@ -187,7 +187,7 @@ char *EchoBroker::getNextDroppedString()
 
     // move cur dropped ptr
     if (this->curDroppedPtr < this->freeDroppedPtr)
-        ++this->curDroppedPtr;
+        this->curDroppedPtr += 1;
 
     if (this->curDroppedPtr == this->freeDroppedPtr)
     {
@@ -213,8 +213,8 @@ bool EchoBroker::getNextUnassignedNode()
         if (this->echoPtr + 1 == MAX_ECHO_NODES)
             this->echoPtr = 0;
         else
-            ++this->echoPtr;
-        ++tries;
+            this->echoPtr += 1;
+        tries += 1;
     }
 
     return this->echos[this->echoPtr].getIsAssigned() == false ? true : false;

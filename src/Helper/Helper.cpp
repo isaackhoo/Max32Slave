@@ -63,9 +63,9 @@ namespace Helper
         while (inPtr < to)
         {
             out[outPtr] = in[inPtr];
-            ++outPtr;
-            ++inPtr;
-            ++bytesCopied;
+            outPtr += 1;
+            inPtr += 1;
+            bytesCopied += 1;
         }
         out[outPtr] = '\0'; // terminate string;
         return bytesCopied;

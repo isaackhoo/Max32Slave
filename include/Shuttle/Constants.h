@@ -61,8 +61,8 @@
 #define CS_ARMHOMING_RIGHT 0x4C
 
 // Battery
-#define BATTERY_MAX_V 280
-#define BATTERY_MIN_V 200
+#define BATTERY_MAX_V 280.0
+#define BATTERY_MIN_V 200.0
 
 namespace ShuttleConstants
 {
