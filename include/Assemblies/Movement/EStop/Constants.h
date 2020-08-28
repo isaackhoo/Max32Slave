@@ -3,8 +3,8 @@
 #ifndef ESTOP_CONSTANTS_H
 #define ESTOP_CONSTANTS_H
 
-#define ESTOP_EXTENDED 50.00
-#define ESTOP_RETRACTED 35.00
+#define ESTOP_EXTENDED 635.0
+#define ESTOP_RETRACTED 30.0
 #define ESTOP_TIMEOUT_DURATION 1000 * 6
 
 namespace EstopConstants
