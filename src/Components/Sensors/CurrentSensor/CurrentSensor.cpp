@@ -1,4 +1,5 @@
 #include "Components/Sensors/CurrentSensor/CurrentSensor.h"
+#include "Logger/Logger.h"
 
 // --------------------------------
 // CURRENTSENSOR PUBLIC VARIABLES

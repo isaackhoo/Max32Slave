@@ -1,4 +1,5 @@
 #include "Assemblies/Movement/MoveMotor/MoveMotor.h"
+#include "Logger/Logger.h"
 
 // ---------------------------------------------- MOVE SENSOR ----------------------------------------------
 // --------------------------------
