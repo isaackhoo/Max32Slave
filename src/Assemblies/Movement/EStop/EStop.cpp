@@ -1,4 +1,5 @@
 #include "Assemblies/Movement/EStop/EStop.h"
+#include "Logger/Logger.h"
 
 // --------------------------------
 // ESTOP PUBLIC VARIABLES
@@ -9,9 +10,7 @@
 // --------------------------------
 EStop::EStop(){};
 
-EStop::EStop(int aPin, int dP1, int dP2, int pwrPin, int pwmPin) : AnalogComms(aPin, INPUT), DCMotor(dP1, dP2, pwrPin, pwmPin)
-{
-};
+EStop::EStop(int aPin, int dP1, int dP2, int pwrPin, int pwmPin) : AnalogComms(aPin, INPUT), DCMotor(dP1, dP2, pwrPin, pwmPin){};
 
 char *EStop::run()
 {
@@ -28,6 +27,7 @@ char *EStop::run()
         {
             if (extensionValue >= ESTOP_EXTENDED)
             {
+                logger.out("Estop extended");
                 itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
@@ -38,6 +38,7 @@ char *EStop::run()
         {
             if (extensionValue <= ESTOP_RETRACTED)
             {
+                logger.out("Estop retracted");
                 itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
@@ -61,6 +62,7 @@ void EStop::extend()
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_EXTEND;
     this->timeStart = millis();
     DCMotor::extend();
+    logger.out("Extending Estop");
 };
 
 void EStop::retract()
@@ -68,6 +70,7 @@ void EStop::retract()
     this->lastInstructions = ENUM_ESTOP_EXTENSION::ESTOP_RETRACT;
     this->timeStart = millis();
     DCMotor::retract();
+    logger.out("Retracting Estop");
 };
 
 // --------------------------------

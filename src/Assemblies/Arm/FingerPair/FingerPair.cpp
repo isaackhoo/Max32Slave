@@ -1,4 +1,5 @@
 #include "Assemblies/Arm/FingerPair/FingerPair.h"
+#include "Logger/Logger.h"
 
 // -------------------------------------------- FINGER --------------------------------------------
 // --------------------------------
@@ -102,11 +103,6 @@ char *FingerPair::run()
         double frontCurrent = this->frontFinger.cs->readCurrent();
         double rearCurrent = this->rearFinger.cs->readCurrent();
 
-        Serial.print("front: ");
-        Serial.print(frontCurrent);
-        Serial.print(" rear: ");
-        Serial.println(rearCurrent);
-
         // record finger average current draw during movement
         if (frontCurrent > FINGER_CURRENT_THRESHOLD)
             this->frontFinger.appendCurrentReading(frontCurrent);
@@ -124,19 +120,11 @@ char *FingerPair::run()
 
         if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
         {
-            Serial.print("both currents below threshold");
-
-            Serial.print("front: ");
-            Serial.print(frontCurrent);
-            Serial.print(" rear: ");
-            Serial.println(rearCurrent);
-
-            Serial.print("timeout difference ");
-            Serial.println(millisDiff);
-
             static char result[DEFAULT_CHARARR_BLOCK_SIZE];
             itoa(this->direction, result, 10);
             res = result;
+
+            logger.out("Finger pair curr under min");
 
             // if any finger didnt manage to start movement
             if (!this->frontFinger.getIsMovementStarted() || !this->rearFinger.getIsMovementStarted())
@@ -146,9 +134,6 @@ char *FingerPair::run()
     else if (millisDiff > FINGER_TIMEOUT_DURATION)
     {
         res = NAKSTR "Finger timed out";
-
-        Serial.print("timeout difference ");
-        Serial.println(millisDiff);
 
         if (this->lastMovement == FINGER_EXTENSION)
             this->retract();
@@ -173,6 +158,10 @@ void FingerPair::powerOff()
 
 bool FingerPair::extend()
 {
+    logger.logCpy("Extending ");
+    this->direction == -1 ? logger.logCat("left") : logger.logCat("right");
+    logger.logCat(" finger pair");
+
     this->initializeFingersBeforeMove();
     this->frontFinger.extend();
     this->rearFinger.extend();
@@ -181,6 +170,10 @@ bool FingerPair::extend()
 
 bool FingerPair::retract()
 {
+    logger.logCpy("Retracting ");
+    this->direction == -1 ? logger.logCat("left") : logger.logCat("right");
+    logger.logCat(" finger pair");
+
     this->initializeFingersBeforeMove();
     this->frontFinger.retract();
     this->rearFinger.retract();

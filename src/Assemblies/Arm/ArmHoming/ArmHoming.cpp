@@ -1,4 +1,5 @@
 #include "Assemblies/Arm/ArmHoming/ArmHoming.h"
+#include "Logger/Logger.h"
 
 // --------------------------------
 // ARMHOMING PUBLIC VARIABLES
@@ -31,6 +32,7 @@ char *ArmHoming::run()
         if (this->isClear())
         {
             res = this->armCountResult;
+            logger.out("Arm homing clear");
         }
     }
     else
@@ -58,13 +60,20 @@ bool ArmHoming::laserOff()
 
 bool ArmHoming::isClear()
 {
-    // int leftRead = this->leftReceiver.dRead();
-    // int rightRead = this->rightReceiver.dRead();
+    bool alwaysClear = true;
 
-    // if (leftRead == LASER_READ && rightRead == LASER_READ)
-    //     return true;
-    // return false;
-    return true;
+    if (alwaysClear)
+    {
+        logger.out("arm homing forced clear");
+        return true;
+    }
+
+    int leftRead = this->leftReceiver.dRead();
+    int rightRead = this->rightReceiver.dRead();
+
+    if (leftRead == LASER_READ && rightRead == LASER_READ)
+        return true;
+    return false;
 };
 
 bool ArmHoming::startCheckingHome(const char *res)

@@ -34,10 +34,7 @@ void setup()
     executeSoftReset(RUN_SKETCH_ON_BOOT);
   }
   else
-    logger.log("Slave chip initialized");
-
-  delay(3000);
-  shuttle.onCommand(ENUM_MASTER_ACTIONS::EXTEND_FINGER_PAIR, "-1");
+    logger.out("Slave chip initialized");
 }
 
 void loop()

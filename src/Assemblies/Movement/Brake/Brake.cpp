@@ -1,4 +1,5 @@
 #include "Assemblies/Movement/Brake/Brake.h"
+#include "Logger/Logger.h"
 
 // --------------------------------
 // BRAKE PUBLIC VARIABLES
@@ -14,11 +15,13 @@ Brake::Brake(int p1, int p2, int pwrPin, int pwmPin) : HBridge(p1, p2, pwrPin, p
 void Brake::engage()
 {
     this->switchLL();
+    logger.out("Brake engaged");
 };
 
 void Brake::disengage()
 {
     this->switchHL();
+    logger.out("Brake disengaged");
 };
 
 // --------------------------------

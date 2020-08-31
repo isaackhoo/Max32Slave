@@ -186,7 +186,7 @@ bool Master::send(const char *toSend, bool shouldLog, bool awaitEcho)
             strcpy(sendLog, "<< ");
             strcat(sendLog, toSend);
         }
-        logger.log(sendLog, false);
+        logger.out(sendLog, false);
     };
 
     // check if should await echo
@@ -240,7 +240,7 @@ void Master::runPing()
                     this->droppedPings += 1;
                 else
                 {
-                    logger.log("Max pings dropped.", false);
+                    logger.out("Max pings dropped.", false);
                     delay(100);
                     executeSoftReset(RUN_SKETCH_ON_BOOT);
                 }
@@ -378,7 +378,7 @@ void Master::perform(MasterComms input)
             strcat(inputLog, EnumMasterActionsString[input.getAction()]);
             strcat(inputLog, " ");
             strcat(inputLog, input.getInstructions());
-            logger.log(inputLog, false);
+            logger.out(inputLog, false);
         }
     };
 

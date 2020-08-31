@@ -58,12 +58,9 @@ double CurrentSensor::getLastReadShuntVoltageVal()
 
 double CurrentSensor::readBusVoltage()
 {
-
     double bus = (double)this->sensor.getBusVoltage_V();
     if (bus != this->lastReadBusVoltageVal)
     {
-        // Serial.print("Bus Voltage ");
-        // Serial.println(bus);
         this->lastReadBusVoltageVal = bus;
     }
     return bus;

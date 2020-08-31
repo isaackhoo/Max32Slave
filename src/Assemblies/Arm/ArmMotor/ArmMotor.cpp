@@ -1,4 +1,5 @@
 #include "Assemblies/Arm/ArmMotor/ArmMotor.h"
+#include "Logger/Logger.h"
 
 // --------------------------------
 // ARMMOTOR PUBLIC VARIABLES
@@ -34,9 +35,10 @@ char *ArmMotor::run()
         // check current position of arm extension
         if (this->available())
         {
-            int absCount = this->getRoboteqFeedback(); // returns absolute value
+            int absCount = this->getRoboteqFeedback();          // returns absolute value
             if (absCount == INT16_MAX || absCount == INT16_MIN) // abs value overflows to negative min
                 return res;
+
             int direction = this->getRoboteqRawFeedback() < 0 ? -1 : 1;
             int directionalCount = absCount * direction;
 
@@ -59,6 +61,10 @@ char *ArmMotor::run()
                 static char armCount[DEFAULT_CHARARR_BLOCK_SIZE];
                 itoa(directionalCount, armCount, 10);
                 res = armCount;
+                logger.logCpy("Arm position ");
+                logger.logCat(armCount);
+                logger.logCat(" reached");
+                logger.out();
             }
             else if (!this->isHoming && abs(directionalCount) > maxAbsLimit)
             {
@@ -99,6 +105,10 @@ void ArmMotor::home()
 // --------------------------------
 void ArmMotor::moveTo(const char *directionalDepth)
 {
+    logger.logCpy("Moving arm to ");
+    logger.logCat(directionalDepth);
+    logger.out();
+
     // instructions already contains the direction and value
     int count = atoi(directionalDepth);
 
