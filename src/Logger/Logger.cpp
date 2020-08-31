@@ -42,7 +42,7 @@ void Logger::logCpy(double d)
 
 void Logger::logCat(const char *str)
 {
-    strcpy(this->logStr, str);
+    strcat(this->logStr, str);
 };
 
 void Logger::logCat(int i)

@@ -31,8 +31,11 @@ public:
 
     int getCount();
 
+    bool getIsInhole();
+
 private:
     int counter;
+    bool isInHole;
 };
 
 class MoveMotor : public Roboteq

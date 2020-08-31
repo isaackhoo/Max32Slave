@@ -14,6 +14,7 @@ MoveSensor::MoveSensor(){};
 MoveSensor::MoveSensor(int pin) : DigitalSensor(pin, INPUT)
 {
     this->counter = 0;
+    this->isInHole = false;
 };
 
 bool MoveSensor::run(ENUM_MOVEMENT_DIRECTION direction)
@@ -41,6 +42,13 @@ bool MoveSensor::run(ENUM_MOTORSENSOR_READING changeType)
     // read value
     int val = this->dRead();
 
+    // update in-hole status
+    if (val == IN_HOLE)
+        this->isInHole = true;
+    else if (val == OUT_HOLE)
+        this->isInHole = false;
+
+    // prepare results
     bool res = false;
 
     // determine which type of change to look out for
@@ -50,14 +58,18 @@ bool MoveSensor::run(ENUM_MOTORSENSOR_READING changeType)
     {
         // looks for out-hole to in-hole
         if (lastVal == OUT_HOLE && val == IN_HOLE)
+        {
             res = true;
+        }
         break;
     }
     case OUT_HOLE:
     {
         // looks for in-hole to out-hole
         if (lastVal == IN_HOLE && val == OUT_HOLE)
+        {
             res = true;
+        }
         break;
     }
     default:
@@ -83,6 +95,8 @@ void MoveSensor::decrementCounter()
 };
 
 int MoveSensor::getCount() { return this->counter; };
+
+bool MoveSensor::getIsInhole() { return this->isInHole; };
 
 // --------------------------------
 // MOVESENSOR PRIVATE VARIABLES
@@ -286,6 +300,103 @@ char *MoveMotor::run()
 
     return res;
 };
+
+// char *MoveMotor::run()
+// {
+//     char *res = NULL;
+
+//     // keep reading for out-hole event
+//     if (this->readingSensor->run(this->currentMovementDirection))
+//     {
+//         this->readingSensor == this->leadingSensor ? logger.logCpy("Leading ") : logger.logCpy("Trailing ");
+//         logger.logCat(" sensor out-hole ");
+//         logger.logCat(this->readingSensor->getCount());
+//         logger.out();
+
+//         // handle out of hole event
+//         if (!this->isStopping)
+//         {
+//             // determine which sensor
+//             if (this->readingSensor == this->trailingSensor)
+//             {
+//                 // updae movement speed
+//                 this->updateMoveSpeed(this->trailingSensor->getCount() - this->targetSlothole);
+
+//                 // check if second last slothole has been scanned
+//                 if (this->trailingSensor->getCount() == this->targetSlothole)
+//                     this->isStopping = true;
+//             }
+//             else if (this->readingSensor == this->leadingSensor)
+//             {
+//                 // verify that trailing and leading sensor counts are consistent
+//                 if (this->leadingSensor->getCount() != this->trailingSensor->getCount())
+//                 {
+//                     logger.errOut("!!! count mismatch detected !!!");
+//                     logger.logCpy("Leading ");
+//                     logger.logCat(this->leadingSensor->getCount());
+//                     logger.logCat(" Trailing ");
+//                     logger.logCat(this->trailingSensor->getCount());
+//                     logger.errOut();
+
+//                     if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::FORWARD)
+//                     {
+//                         // trailing count should be >= leading count
+//                         if (this->trailingSensor->getCount() < this->leadingSensor->getCount())
+//                         {
+//                             // force trailing count to be leading count
+//                             this->trailingSensor->setCounter(this->leadingSensor->getCount());
+//                             logger.logCpy("Trailing sensor count forced to ");
+//                             logger.logCat(this->trailingSensor->getCount());
+//                         }
+//                         else
+//                         {
+//                             // force leading count to be trailing count
+//                             this->leadingSensor->setCounter(this->trailingSensor->getCount());
+//                             logger.logCpy("Leading sensor count forced to ");
+//                             logger.logCat(this->leadingSensor->getCount());
+//                         }
+//                     }
+//                     else if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::REVERSE)
+//                     {
+//                         // trailing count should be <= leading count
+//                         if (this->trailingSensor->getCount() > this->leadingSensor->getCount())
+//                         {
+//                             // force trailing count to be elading count
+//                             this->trailingSensor->setCounter(this->leadingSensor->getCount());
+//                             logger.logCpy("Trailing sensor count forced to ");
+//                             logger.logCat(this->trailingSensor->getCount());
+//                         }
+//                         else
+//                         {
+//                             // force leading count to be trailing count
+//                             this->leadingSensor->setCounter(this->trailingSensor->getCount());
+//                             logger.logCpy("Leading sensor count forced to ");
+//                             logger.logCat(this->leadingSensor->getCount());
+//                         }
+//                     }
+//                     logger.out();
+//                 }
+
+//                 // update shuttle position
+//                 this->currentSlothole = this->leadingSensor->getCount();
+//             };
+//         }
+
+//         // alternate the sensor
+//         this->readingSensor = this->readingSensor == this->leadingSensor ? this->trailingSensor : this->leadingSensor;
+//     }; // end read out-hole event
+
+//     // read for in-hole event
+//     if (this->readingSensor->run(IN_HOLE))
+//     {
+//         if (this->isStopping)
+//         {
+            
+//         }
+//     }
+
+//     return res;
+// };
 
 bool MoveMotor::moveTo(const char *slothole)
 {

@@ -51,7 +51,6 @@ bool SerialComms::read(const char END_CHAR)
 bool SerialComms::send(const char *toSend)
 {
     this->ss->print(toSend);
-    this->ss->flush();
     return true;
 };
 

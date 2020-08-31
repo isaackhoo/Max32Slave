@@ -172,7 +172,7 @@ bool Master::send(const char *toSend, bool shouldLog, bool awaitEcho)
 {
     // send out string
     bool res = this->serial.send(toSend);
-    delay(55); // include to prevent serial from jamming up when sending too quickly
+    // delay(55); // include to prevent serial from jamming up when sending too quickly
 
     // check if should log
     if (shouldLog)
