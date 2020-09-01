@@ -12,7 +12,7 @@
 #define SLOTHOLE_BUFFER 0
 #define SLOTHOLES_PER_COL 6
 
-#define DEFAULT_LAST_SLOTHOLE_MILLIS 0
+#define DEFAULT_MOVEMENT_MILLIS 0
 
 // speed
 #define SPEED_5 1000
@@ -20,6 +20,7 @@
 #define SPEED_3 500
 #define SPEED_2 250
 #define SPEED_1 120
+#define MIN_SPEED_RPM 35
 
 // creeping
 #define POSITION_INITIAL_CREEP_DELAY 150

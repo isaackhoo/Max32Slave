@@ -48,6 +48,7 @@ public:
 public:
     bool moveTo(const char *);
     void cutShuttleSpeed();
+    void heavyStop();
     void immediateStop();
     void updateCurrentSlothole(const char *);
 
@@ -68,20 +69,24 @@ private:
     int targetSlothole;
     int currentSlothole;
 
-    unsigned int lastSlotholeMillis;
-    unsigned int lastSlotholeStopTimeoutDuration;
-    bool isStopping;
-    unsigned int modeToggleMillis;
-    bool shouldReverseCreep;
+    bool movementComplete;
+    bool isPreparingStop;
+    bool hasStopped;
+    unsigned int stoppedMillis;
 
+    bool shouldReverseCreep;
     int creepCount;
     unsigned int lastCreepMillis;
 
 private:
+    void initializeMovementVariables();
     void updateMoveSpeed(int);
-    void determineLastSlotholeTimeoutDuration();
+    // void determineLastSlotholeTimeoutDuration();
     bool onLastSlotholeArrival();
     char *createSlotholeArriveSuccessStr();
+
+private:
+
 };
 
 #endif
