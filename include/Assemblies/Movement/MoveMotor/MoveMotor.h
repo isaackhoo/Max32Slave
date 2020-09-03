@@ -82,11 +82,8 @@ private:
     void initializeMovementVariables();
     void updateMoveSpeed(int);
     // void determineLastSlotholeTimeoutDuration();
-    bool onLastSlotholeArrival();
+    // bool onLastSlotholeArrival();
     char *createSlotholeArriveSuccessStr();
-
-private:
-
 };
 
 #endif
