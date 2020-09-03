@@ -150,6 +150,21 @@ char *MoveMotor::run()
         if (!this->isStopping && this->readingSensor->run(this->currentMovementDirection))
         {
             // reading sensor has detected in-hole to out-hole event
+            // // validate scan
+            // if (this->trailingSensor->getCount() != this->leadingSensor->getCount() + (this->currentMovementDirection * 1))
+            // {
+            //     if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::FORWARD)
+            //     {
+            //         if (this->trailingSensor->getCount() > this->leadingSensor->getCount())
+            //         {
+
+            //         }
+            //     }
+            //     else if (this->currentMovementDirection == ENUM_MOVEMENT_DIRECTION::REVERSE)
+            //     {
+            //     }
+            // }
+
             // determine which sensor it is
             if (this->readingSensor == this->trailingSensor)
             {
@@ -391,7 +406,7 @@ char *MoveMotor::run()
 //     {
 //         if (this->isStopping)
 //         {
-            
+
 //         }
 //     }
 
@@ -416,6 +431,10 @@ bool MoveMotor::moveTo(const char *slothole)
     this->isStopping = false;
     // reset shuttle creep control variables
     this->shouldReverseCreep = false;
+
+    // get initial readings
+    this->frontSensor.dRead();
+    this->rearSensor.dRead();
 
     // determine direction
     ENUM_MOVEMENT_DIRECTION direction;
