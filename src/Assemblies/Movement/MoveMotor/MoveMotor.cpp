@@ -301,7 +301,7 @@ char *MoveMotor::run()
     char *res = NULL;
 
     // keep reading for out-hole event, if sensor is currently in hole
-    if (this->readingSensor->getIsInhole() && this->readingSensor->run(this->currentMovementDirection))
+    if (this->readingSensor->getIsInhole() == true && this->readingSensor->run(this->currentMovementDirection))
     {
         this->readingSensor == this->leadingSensor ? logger.logCpy("Leading ") : logger.logCpy("Trailing ");
         logger.logCat(" sensor out-hole ");
@@ -320,7 +320,10 @@ char *MoveMotor::run()
 
                 // check if second last slothole has been scanned
                 if (this->trailingSensor->getCount() == this->targetSlothole)
+                {
                     this->isPreparingStop = true;
+                    logger.out("is preparing to stop");
+                }
             };
         }
         // leading sensor out-hole event
@@ -384,19 +387,31 @@ char *MoveMotor::run()
     }; // end read out-hole event
 
     // read for in-hole event, if sensor is currently out-hole
-    if (!this->readingSensor->getIsInhole() && this->readingSensor->run(IN_HOLE))
+    if (this->readingSensor->getIsInhole() == false && this->readingSensor->run(IN_HOLE))
     {
+
+        this->readingSensor == this->leadingSensor ? logger.logCpy("Leading ") : logger.logCpy("Trailing ");
+        logger.logCat(" sensor in-hole ");
+        logger.logCat(this->readingSensor->getCount());
+        logger.out();
         // determine which sensor
         // trailing sensor
         if (this->readingSensor == this->trailingSensor)
         {
             if (this->hasStopped)
             {
+                logger.out("trailing im_stop");
+
                 this->immediateStop();
 
                 // terminate movement
                 this->movementComplete = true;
+
+                // update final slothole
                 res = this->createSlotholeArriveSuccessStr();
+
+                logger.out("res msg");
+                logger.out(res);
             }
         }
         // leading sensor
@@ -404,6 +419,7 @@ char *MoveMotor::run()
         {
             if (this->isPreparingStop && this->getMode() == ENUM_ROBOTEQ_CONFIG::SPEED)
             {
+                logger.out("Leading sensor trigger stop");
                 // terminate shuttle speed
                 this->heavyStop();
                 // toggle stop variable
@@ -612,6 +628,8 @@ void MoveMotor::updateMoveSpeed(int diff)
         speed = SPEED_2;
     else
         speed = SPEED_1;
+
+    speed = SPEED_1;
 
     // implement movement direction
     speed *= this->currentMovementDirection;
