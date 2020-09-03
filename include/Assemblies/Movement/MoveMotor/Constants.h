@@ -41,7 +41,8 @@ namespace MoveMotorConstants
     enum ENUM_MOTORSENSOR_READING
     {
         IN_HOLE = 0,
-        OUT_HOLE = 1
+        OUT_HOLE = 1,
+        NO_CHANGE = -1
     };
 
     enum ENUM_LAST_SLOTHOLE_TIMEOUT_DURATION

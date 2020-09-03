@@ -25,6 +25,7 @@ public:
 public:
     bool run(ENUM_MOVEMENT_DIRECTION);
     bool run(ENUM_MOTORSENSOR_READING);
+    ENUM_MOTORSENSOR_READING run();
     void setCounter(int);
     void incrementCounter();
     void decrementCounter();
@@ -83,6 +84,9 @@ private:
     void updateMoveSpeed(int);
     // void determineLastSlotholeTimeoutDuration();
     // bool onLastSlotholeArrival();
+
+    char *onSensorCountMismatch();
+
     char *createSlotholeArriveSuccessStr();
 };
 
