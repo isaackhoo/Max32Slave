@@ -26,10 +26,10 @@ public:
     bool run(ENUM_MOVEMENT_DIRECTION);
     bool run(ENUM_MOTORSENSOR_READING);
     ENUM_MOTORSENSOR_READING run();
+
     void setCounter(int);
     void incrementCounter();
     void decrementCounter();
-
     int getCount();
 
     bool getIsInhole();
@@ -70,6 +70,8 @@ private:
     int targetSlothole;
     int currentSlothole;
 
+    unsigned int movementStartMillis;
+    int lastMoveSpeed;
     bool movementComplete;
     bool isPreparingStop;
     bool hasStopped;
@@ -84,6 +86,19 @@ private:
     void updateMoveSpeed(int);
     // void determineLastSlotholeTimeoutDuration();
     // bool onLastSlotholeArrival();
+
+    void toggleReadingSensor(MoveSensor *);
+    void toggleReadingSensor();
+
+    void onSpeedLeadInHoleEvt();
+    void onSpeedTrailInHoleEvt();
+    void onSpeedLeadOutHoleEvt();
+    void onSpeedTrailOutHoleEvt();
+
+    void onCreepLeadInHoleEvt();
+    void onCreepTrailInHoleEvt();
+    void onCreepLeadOutHoleEvt();
+    void onCreepTrailOutHoleEvt();
 
     char *onSensorCountMismatch();
 
