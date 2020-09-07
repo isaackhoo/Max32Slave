@@ -25,10 +25,11 @@ public:
 public:
     bool run(ENUM_MOVEMENT_DIRECTION);
     bool run(ENUM_MOTORSENSOR_READING);
+    ENUM_MOTORSENSOR_READING run();
+
     void setCounter(int);
     void incrementCounter();
     void decrementCounter();
-
     int getCount();
 
     bool getIsInhole();
@@ -48,6 +49,7 @@ public:
 public:
     bool moveTo(const char *);
     void cutShuttleSpeed();
+    void heavyStop();
     void immediateStop();
     void updateCurrentSlothole(const char *);
 
@@ -68,19 +70,38 @@ private:
     int targetSlothole;
     int currentSlothole;
 
-    unsigned int lastSlotholeMillis;
-    unsigned int lastSlotholeStopTimeoutDuration;
-    bool isStopping;
-    unsigned int modeToggleMillis;
-    bool shouldReverseCreep;
+    unsigned int movementStartMillis;
+    int lastMoveSpeed;
+    bool movementComplete;
+    bool isPreparingStop;
+    bool hasStopped;
+    unsigned int stoppedMillis;
 
+    bool shouldReverseCreep;
     int creepCount;
     unsigned int lastCreepMillis;
 
 private:
+    void initializeMovementVariables();
     void updateMoveSpeed(int);
-    void determineLastSlotholeTimeoutDuration();
-    bool onLastSlotholeArrival();
+    // void determineLastSlotholeTimeoutDuration();
+    // bool onLastSlotholeArrival();
+
+    void toggleReadingSensor(MoveSensor *);
+    void toggleReadingSensor();
+
+    void onSpeedLeadInHoleEvt();
+    void onSpeedTrailInHoleEvt();
+    void onSpeedLeadOutHoleEvt();
+    void onSpeedTrailOutHoleEvt();
+
+    void onCreepLeadInHoleEvt();
+    void onCreepTrailInHoleEvt();
+    void onCreepLeadOutHoleEvt();
+    void onCreepTrailOutHoleEvt();
+
+    char *onSensorCountMismatch();
+
     char *createSlotholeArriveSuccessStr();
 };
 

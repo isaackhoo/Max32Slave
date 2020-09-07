@@ -213,28 +213,10 @@ void Shuttle::run()
             if (voltageReading > BATTERY_MAX_V)
                 voltageReading = BATTERY_MAX_V;
 
-            Serial.print("voltage reading ");
-            Serial.println(voltageReading);
-
-            Serial.print("min ");
-            Serial.println(BATTERY_MIN_V);
-            Serial.print("max ");
-            Serial.println(BATTERY_MAX_V);
-
-            Serial.print("numerator ");
-            Serial.println((voltageReading - BATTERY_MIN_V));
-            Serial.print("demoninator ");
-            Serial.println((BATTERY_MAX_V - BATTERY_MIN_V));
-
             // convert voltage reading to percentage result
             double percDouble = (((double)voltageReading - BATTERY_MIN_V) / (BATTERY_MAX_V - BATTERY_MIN_V));
-            Serial.print("percDouble ");
-            Serial.println(percDouble);
 
             int percentage = (int)(percDouble * 1000);
-
-            Serial.print("percentage ");
-            Serial.println(percentage);
 
             // convert percentage to string
             static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};

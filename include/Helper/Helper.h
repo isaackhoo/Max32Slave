@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#define DEFAULT_CHARARR_BLOCK_SIZE 64
+#define DEFAULT_CHARARR_BLOCK_SIZE 128
 #define DEFAULT_ENUM_VALUE_LEN 2
 
 namespace Helper
