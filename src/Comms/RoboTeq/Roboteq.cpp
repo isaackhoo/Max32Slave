@@ -12,18 +12,20 @@ Roboteq::Roboteq(){};
 Roboteq::Roboteq(HardwareSerial *ss) : SerialComms(ss)
 {
     this->currentMode = SPEED;
-
     this->rawFeedback = 0;
+    this->lastQueryMillis = 0;
 };
 
 void Roboteq::requestRpm()
 {
     this->send(QUERY_RPM RBTQ_ENDSTR);
+    this->lastQueryMillis = millis();
 };
 
 void Roboteq::requestPositionCount()
 {
     this->send(QUERY_POSITION_COUNT RBTQ_ENDSTR);
+    this->lastQueryMillis = millis();
 };
 
 bool Roboteq::available()
@@ -31,6 +33,11 @@ bool Roboteq::available()
     if (this->read(RBTQ_ENDCHAR))
         return true;
     return false;
+};
+
+unsigned int Roboteq::getLastQueryMillis()
+{
+    return this->lastQueryMillis;
 };
 
 int Roboteq::getRoboteqFeedback()
@@ -184,6 +191,7 @@ bool Roboteq::setPositionCount(int count)
 void Roboteq::requestBatteryLevel()
 {
     this->send(QUERY_BATTERY RBTQ_ENDSTR);
+    this->lastQueryMillis = millis();
 };
 
 // --------------------------------
@@ -197,7 +205,7 @@ int Roboteq::interpretFeedback()
 {
     // extract and interpret feedback
     int res = INT16_MIN;
-    char resStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
+    static char resStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
 
     // check if feedback if for battery
     int firstBattDeli = IDXOF(this->serialIn, QUERY_BATT_DELIMITER);

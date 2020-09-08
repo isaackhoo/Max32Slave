@@ -23,6 +23,7 @@ public:
     void requestPositionCount();
     bool available();
 
+    unsigned int getLastQueryMillis();
     int getRoboteqFeedback();
     int getRoboteqRawFeedback();
 
@@ -50,6 +51,7 @@ public:
 private:
     ENUM_ROBOTEQ_CONFIG currentMode;
 
+    unsigned int lastQueryMillis;
     char queryFeedback[DEFAULT_CHARARR_BLOCK_SIZE];
     int rawFeedback;
 
