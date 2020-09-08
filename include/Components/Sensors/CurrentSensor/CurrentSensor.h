@@ -13,6 +13,8 @@ public:
     CurrentSensor(uint8_t);
     void init(uint8_t);
 
+    unsigned int getLastReadMillis();
+
     double readCurrent();
     double getLastReadCurrentVal();
 
@@ -24,9 +26,14 @@ public:
 
 private:
     Adafruit_INA219 sensor;
+    unsigned int lastReadMillis;
+
     double lastReadCurrentVal;
     double lastReadShuntVoltageVal;
     double lastReadBusVoltageVal;
+
+private:
+    void updateLastReadMillis();
 };
 
 #endif

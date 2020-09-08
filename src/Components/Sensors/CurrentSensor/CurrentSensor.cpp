@@ -22,11 +22,19 @@ void CurrentSensor::init(uint8_t id)
 {
     this->sensor = Adafruit_INA219(id);
     this->sensor.begin();
+
+    this->lastReadMillis = 0;
+};
+
+unsigned int CurrentSensor::getLastReadMillis()
+{
+    return this->lastReadMillis;
 };
 
 double CurrentSensor::readCurrent()
 {
     double read = this->sensor.getCurrent_mA();
+    this->updateLastReadMillis();
     if (read != this->lastReadCurrentVal)
     {
         this->lastReadCurrentVal = read;
@@ -42,6 +50,7 @@ double CurrentSensor::getLastReadCurrentVal()
 double CurrentSensor::readShuntVoltage()
 {
     double shunt = this->sensor.getShuntVoltage_mV();
+    this->updateLastReadMillis();
     if (shunt != this->lastReadShuntVoltageVal)
     {
         // Serial.print("Shunt Voltage ");
@@ -59,6 +68,7 @@ double CurrentSensor::getLastReadShuntVoltageVal()
 double CurrentSensor::readBusVoltage()
 {
     double bus = (double)this->sensor.getBusVoltage_V();
+    this->updateLastReadMillis();
     if (bus != this->lastReadBusVoltageVal)
     {
         this->lastReadBusVoltageVal = bus;
@@ -78,3 +88,7 @@ double CurrentSensor::getLastReadBusVoltageVal()
 // --------------------------------
 // CURRENTSENSOR PRIVATE METHODS
 // --------------------------------
+void CurrentSensor::updateLastReadMillis()
+{
+    this->lastReadMillis = millis();
+};

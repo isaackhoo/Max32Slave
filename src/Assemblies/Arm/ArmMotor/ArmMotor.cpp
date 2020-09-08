@@ -35,8 +35,8 @@ char *ArmMotor::run()
         // check current position of arm extension
         if (this->available())
         {
-            int absCount = this->getRoboteqFeedback();          // returns absolute value
-            if (absCount == INT16_MAX || absCount == INT16_MIN) // abs value overflows to negative min
+            int absCount = this->getRoboteqFeedback(); // returns absolute value
+            if (absCount == INT16_MAX || absCount == INT16_MIN)
                 return res;
 
             int direction = this->getRoboteqRawFeedback() < 0 ? -1 : 1;
@@ -51,9 +51,7 @@ char *ArmMotor::run()
 
             // update last position read
             if (directionalCount <= maxLimit)
-            {
                 this->lastPositionCount = directionalCount;
-            }
 
             if (minLimit <= directionalCount && directionalCount <= maxLimit)
             {
@@ -67,11 +65,9 @@ char *ArmMotor::run()
                 logger.out();
             }
             else if (!this->isHoming && abs(directionalCount) > maxAbsLimit)
-            {
                 res = NAKSTR "Arm over-extended";
-            }
 
-            if (res == NULL)
+            if (res == NULL && (millis() - this->getLastQueryMillis() >= ARM_REQ_INTERVAL))
                 this->requestPositionCount();
         }
     }

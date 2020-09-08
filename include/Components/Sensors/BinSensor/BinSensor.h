@@ -13,6 +13,13 @@ public:
     BinSensor(int);
 
     char *run();
+    unsigned int getLastReadMillis();
+
+private:
+    unsigned int lastReadMillis;
+
+private:
+    void updateLastReadMillis();
 };
 
 #endif

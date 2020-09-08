@@ -100,35 +100,38 @@ char *FingerPair::run()
 
     if (millisDiff >= FINGER_DELAY_BEFORE_READING && millisDiff <= FINGER_TIMEOUT_DURATION)
     {
-        double frontCurrent = this->frontFinger.cs->readCurrent();
-        double rearCurrent = this->rearFinger.cs->readCurrent();
-
-        // record finger average current draw during movement
-        if (frontCurrent > FINGER_CURRENT_THRESHOLD)
-            this->frontFinger.appendCurrentReading(frontCurrent);
-        if (rearCurrent > FINGER_CURRENT_THRESHOLD)
-            this->rearFinger.appendCurrentReading(rearCurrent);
-
-        // check that finger movement started
-        if (!this->frontFinger.getIsMovementStarted())
-            if (frontCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
-                this->frontFinger.setMovementStarted(true);
-
-        if (!this->rearFinger.getIsMovementStarted())
-            if (rearCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
-                this->rearFinger.setMovementStarted(true);
-
-        if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
+        if (currentMillis - this->frontFinger.cs->getLastReadMillis() >= FINGER_READ_INTERVAL)
         {
-            static char result[DEFAULT_CHARARR_BLOCK_SIZE];
-            itoa(this->direction, result, 10);
-            res = result;
+            double frontCurrent = this->frontFinger.cs->readCurrent();
+            double rearCurrent = this->rearFinger.cs->readCurrent();
 
-            logger.out("Finger pair curr under min");
+            // record finger average current draw during movement
+            if (frontCurrent > FINGER_CURRENT_THRESHOLD)
+                this->frontFinger.appendCurrentReading(frontCurrent);
+            if (rearCurrent > FINGER_CURRENT_THRESHOLD)
+                this->rearFinger.appendCurrentReading(rearCurrent);
 
-            // if any finger didnt manage to start movement
-            if (!this->frontFinger.getIsMovementStarted() || !this->rearFinger.getIsMovementStarted())
-                res = NAKSTR "Finger failed to move";
+            // check that finger movement started
+            if (!this->frontFinger.getIsMovementStarted())
+                if (frontCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                    this->frontFinger.setMovementStarted(true);
+
+            if (!this->rearFinger.getIsMovementStarted())
+                if (rearCurrent >= FINGER_INITIAL_MIN_CURRENT_DRAW)
+                    this->rearFinger.setMovementStarted(true);
+
+            if (frontCurrent <= FINGER_CURRENT_THRESHOLD && rearCurrent <= FINGER_CURRENT_THRESHOLD)
+            {
+                static char result[DEFAULT_CHARARR_BLOCK_SIZE];
+                itoa(this->direction, result, 10);
+                res = result;
+
+                logger.out("Finger pair curr under min");
+
+                // if any finger didnt manage to start movement
+                if (!this->frontFinger.getIsMovementStarted() || !this->rearFinger.getIsMovementStarted())
+                    res = NAKSTR "Finger failed to move";
+            }
         }
     }
     else if (millisDiff > FINGER_TIMEOUT_DURATION)
