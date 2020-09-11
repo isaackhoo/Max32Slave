@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "Helper/Helper.h"
 
-#define MAX_ECHO_NODES 4
+#define MAX_ECHO_NODES 16
 
 class EchoNode
 {

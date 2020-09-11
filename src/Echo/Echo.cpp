@@ -136,7 +136,6 @@ int EchoBroker::run()
     int offset = 0;
     while (offset < MAX_ECHO_NODES)
     {
-
         EchoNode *node = &this->echos[(this->echoPtr + offset) % MAX_ECHO_NODES];
         if (node->getIsAssigned())
         {
