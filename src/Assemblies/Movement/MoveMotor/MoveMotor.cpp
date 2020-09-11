@@ -233,6 +233,8 @@ char *MoveMotor::run()
         logger.logCat(this->readingSensor->getCount());
         logger.out();
 
+        logger.out(millis());
+
         // determine action based on mode
         switch (this->getMode())
         {
@@ -279,18 +281,10 @@ char *MoveMotor::run()
     if (this->getMode() == SPEED && !this->movementComplete && this->isPreparingStop && this->available())
     {
         int rpm = this->getRoboteqFeedback();
-        if (rpm != INT16_MIN)
-        {
-            logger.logCpy("rpm: ");
-            logger.logCat(rpm);
-            logger.out();
-        }
 
         if (rpm != INT16_MIN && rpm <= MIN_SPEED_RPM)
         {
             // shuttle fell below min rpm speed. change modes
-            logger.out("RPM below min");
-
             // check trailing sensor should be in hole
             this->trailingSensor->dRead();
 
@@ -322,7 +316,6 @@ char *MoveMotor::run()
     {
         if (millis() - this->getLastQueryMillis() >= RPM_REQ_INTERVAL)
         {
-            logger.out("req next rpm");
             // continue reading
             this->requestRpm();
         }
@@ -563,7 +556,6 @@ void MoveMotor::onSpeedLeadInHoleEvt()
     // check for last slothole event
     if (this->leadingSensor->getCount() == this->targetSlothole - (this->currentMovementDirection * 1))
     {
-        logger.out("L in last slothole event");
         // leading sensor is in last slothole
         this->immediateStop();
     }
@@ -574,8 +566,6 @@ void MoveMotor::onSpeedTrailInHoleEvt()
     // check for last slothole event
     if (this->trailingSensor->getCount() == this->targetSlothole)
     {
-        logger.out("T in last slothole event");
-
         // trailing sensor is in last slothole
         this->immediateStop();
     }
@@ -610,10 +600,11 @@ void MoveMotor::onCreepTrailInHoleEvt()
     // check for last slothole event
     if (this->trailingSensor->getCount() == this->targetSlothole)
     {
-        logger.out("T in last slothole event");
-
         // trailing sensor is in last slothole
         this->immediateStop();
+
+        // change back the mode
+        this->setMode(SPEED);
 
         // check if movement was reversed
         if (this->shouldReverseCreep)
@@ -630,7 +621,13 @@ void MoveMotor::onCreepTrailInHoleEvt()
 void MoveMotor::onCreepLeadOutHoleEvt()
 {
     // update shuttle position
-    this->currentSlothole = this->leadingSensor->getCount();
+    if (isDigit(this->leadingSensor->getCount()))
+        this->currentSlothole = this->leadingSensor->getCount();
+    else if (isDigit(this->trailingSensor->getCount()))
+    {
+        this->leadingSensor->setCounter(this->trailingSensor->getCount());
+        this->currentSlothole = this->leadingSensor->getCount();
+    }
 };
 
 void MoveMotor::onCreepTrailOutHoleEvt()
@@ -659,8 +656,10 @@ char *MoveMotor::onSensorCountMismatch()
 
 char *MoveMotor::createSlotholeArriveSuccessStr()
 {
-    static char currentSlotholeStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
-    itoa(this->currentSlothole, currentSlotholeStr, 10);
+    static char currentSlotholeStr[DEFAULT_CHARARR_BLOCK_SIZE];
+    currentSlotholeStr[0] = '\0';
+    sprintf(currentSlotholeStr, "%d", this->currentSlothole);
+    // itoa(this->currentSlothole, currentSlotholeStr, 10);
 
     return currentSlotholeStr;
 };

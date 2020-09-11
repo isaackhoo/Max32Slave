@@ -31,7 +31,8 @@ void Logger::logCpy(const char *str)
 void Logger::logCpy(int i)
 {
     char buf[DEFAULT_CHARARR_BLOCK_SIZE];
-    itoa(i, buf, 10);
+    sprintf(buf, "%d", i);
+    // itoa(i, buf, 10);
     this->logCpy(buf);
 };
 
@@ -48,7 +49,8 @@ void Logger::logCat(const char *str)
 void Logger::logCat(int i)
 {
     char buf[DEFAULT_CHARARR_BLOCK_SIZE];
-    itoa(i, buf, 10);
+    sprintf(buf, "%d", i);
+    // itoa(i, buf, 10);
     this->logCat(buf);
 };
 
@@ -177,14 +179,16 @@ char *Logger::dtoa(double d, size_t s)
     int rem = abs(i % mul);
 
     // add quo
-    itoa(quo, numStr, 10);
+    sprintf(numStr, "%d", quo);
+    // itoa(quo, numStr, 10);
     strcat(dStr, numStr);
 
     // add decimal
     strcat(dStr, ".");
 
     // add rem
-    itoa(rem, numStr, 10);
+    sprintf(numStr, "%d", rem);
+    // itoa(rem, numStr, 10);
     strcat(dStr, numStr);
 
     return dStr;

@@ -57,7 +57,7 @@ char *ArmMotor::run()
             {
                 // feed back that arm has reached position
                 static char armCount[DEFAULT_CHARARR_BLOCK_SIZE];
-                itoa(directionalCount, armCount, 10);
+                sprintf(armCount, "%d", directionalCount);
                 res = armCount;
                 logger.logCpy("Arm position ");
                 logger.logCat(armCount);
@@ -66,13 +66,14 @@ char *ArmMotor::run()
             }
             else if (!this->isHoming && abs(directionalCount) > maxAbsLimit)
                 res = NAKSTR "Arm over-extended";
-
-            if (res == NULL && (millis() - this->getLastQueryMillis() >= ARM_REQ_INTERVAL))
-                this->requestPositionCount();
         }
     }
     else
         res = NAKSTR "Arm timed out";
+
+    // continue querying arm
+    if (res == NULL && (millis() - this->getLastQueryMillis() >= ARM_REQ_INTERVAL))
+        this->requestPositionCount();
 
     return res;
 };
@@ -88,7 +89,7 @@ void ArmMotor::home()
     this->isHoming = true;
 
     char homeCmd[DEFAULT_CHARARR_BLOCK_SIZE];
-    itoa(ARM_POSITION_COUNT_HOME, homeCmd, 10);
+    sprintf(homeCmd, "%d", ARM_POSITION_COUNT_HOME);
     this->moveTo(homeCmd);
 };
 

@@ -111,6 +111,9 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // off arm homing
     this->armHoming.laserOff();
 
+    // disengage brakes
+    this->moveMotor.disengageBrake();
+
     // estop
     this->eStopL.retract(); // TODO: change to extend
 
@@ -158,22 +161,22 @@ void Shuttle::run()
         if (!this->armHoming.getIsCheckingHome())
         {
             res = this->armMotor.run();
-            // if (res != NULL)
-            // {
-            //     this->armHoming.startCheckingHome(res);
-            //     res = NULL;
-            // }
-            this->armHoming.clearIsCheckingHome();
+            // this->armHoming.clearIsCheckingHome();F
+            if (res != NULL)
+            {
+                this->armHoming.startCheckingHome(res);
+                res = NULL;
+            }     
         }
-        // else
-        // {
-        //     // check that arm is home
-        //     res = this->armHoming.run();
-        //     if (res != NULL)
-        //     {
-        //         this->armHoming.clearIsCheckingHome();
-        //     }
-        // }
+        else
+        {
+            // check that arm is home
+            res = this->armHoming.run();
+            if (res != NULL)
+            {
+                this->armHoming.clearIsCheckingHome();
+            }
+        }
         break;
     }
     case EXTEND_FINGER_PAIR:
@@ -219,8 +222,10 @@ void Shuttle::run()
             int percentage = (int)(percDouble * 1000);
 
             // convert percentage to string
-            static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE] = {'\0'};
-            itoa(percentage, percentageStr, 10);
+            static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE];
+            percentageStr[0] = '\0';
+            sprintf(percentageStr, "%d", percentage);
+            // itoa(percentage, percentageStr, 10);
             res = percentageStr;
         }
         break;
@@ -316,7 +321,8 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
         readVal = scanDirection * activeSensor->aRead();
 
         // feedback to master scan result
-        itoa((int)readVal, readValStr, 10);
+        sprintf(readValStr, "%d", (int)readVal);
+        // itoa((int)readVal, readValStr, 10);
         this->feedbackStepCompletion(readValStr);
 
         break;

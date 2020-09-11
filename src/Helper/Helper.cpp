@@ -7,7 +7,8 @@ namespace Helper
         static char out[4];
         // get c str of value
         char val[4];
-        itoa(i, val, 10);
+        sprintf(val, "%d", i);
+        // itoa(i, val, 10);
 
         if (i < 10)
         {
