@@ -165,9 +165,22 @@ char *MoveMotor::run()
     // run this only during movement
     if (!this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
     {
-        logger.out("Resolving miscount");
+        logger.errOut("Resolving miscount");
         // update the count of the missed reading sensor
         this->readingSensor->setCounter(this->readingSensor->getCount() + (this->currentMovementDirection * 1));
+        // run the out-hole event of the sensor that missed its reading
+        if (this->getMode() == SPEED) {
+            if (this->readingSensor == this->leadingSensor)
+                this->onSpeedLeadOutHoleEvt();
+            else if (this->readingSensor == this->trailingSensor)
+                this->onSpeedTrailOutHoleEvt();
+        } else if (this->getMode() == R_POSITION) {
+            if (this->readingSensor == this->leadingSensor)
+                this->onCreepLeadOutHoleEvt();
+            else if (this->readingSensor == this->trailingSensor)
+                this->onCreepTrailOutHoleEvt();
+        }
+
         // toggle the reading sensor
         this->toggleReadingSensor();
         // perform in hole event
@@ -232,8 +245,6 @@ char *MoveMotor::run()
         logger.logCat("out-hole ");
         logger.logCat(this->readingSensor->getCount());
         logger.out();
-
-        logger.out(millis());
 
         // determine action based on mode
         switch (this->getMode())
