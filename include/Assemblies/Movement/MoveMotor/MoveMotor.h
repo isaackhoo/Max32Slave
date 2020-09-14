@@ -27,12 +27,15 @@ public:
     bool run(ENUM_MOTORSENSOR_READING);
     ENUM_MOTORSENSOR_READING run();
 
+    void onToggle(); 
+
     void setCounter(int);
     void incrementCounter();
     void decrementCounter();
     int getCount();
 
     bool getIsInhole();
+
 
 private:
     int counter;

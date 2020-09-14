@@ -102,6 +102,14 @@ ENUM_MOTORSENSOR_READING MoveSensor::run()
         return NO_CHANGE;
 }
 
+void MoveSensor::onToggle()
+{
+    // code to run when toggled to be active
+    // perform an inital read to update current read state
+    this->dRead();
+    this->isInHole = false;
+};
+
 void MoveSensor::setCounter(int count)
 {
     this->counter = count;
@@ -163,9 +171,12 @@ char *MoveMotor::run()
 
     // ensure that the other senor does not trigger an IN_HOLE event before reading sensor does an OUT_HOLE
     // run this only during movement
-    if (!this->isFirstSlotholeRead && !this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
+    // if (!this->isFirstSlotholeRead && !this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
+
+    // ignore checking until after clearing the slothole shuttle started from
+    if (!this->isFirstSlotholeRead && altSensor->run(IN_HOLE))
     {
-        logger.errOut("Resolving miscount");
+        logger.errOut("Alt inhole pre-reading");
         logger.logCpy(altSensor == this->leadingSensor ? "L: " : "T: ");
         logger.logCat("L ");
         logger.logCat(this->leadingSensor->getCount());
@@ -603,7 +614,7 @@ void MoveMotor::toggleReadingSensor(MoveSensor *sensor)
 {
     this->readingSensor = sensor;
     // reset the reading of the sensor
-    this->readingSensor->dRead();
+    this->readingSensor->onToggle();
 };
 
 void MoveMotor::toggleReadingSensor()

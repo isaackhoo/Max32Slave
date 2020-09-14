@@ -29,8 +29,8 @@ char *EStop::run()
             if (extensionValue >= ESTOP_EXTENDED)
             {
                 logger.out("Estop extended");
-                sprintf(resStr, "%d", (int)extensionValue);
-                // itoa((int)extensionValue, resStr, 10);
+                // sprintf(resStr, "%d", (int)extensionValue);
+                itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
 
@@ -41,8 +41,8 @@ char *EStop::run()
             if (extensionValue <= ESTOP_RETRACTED)
             {
                 logger.out("Estop retracted");
-                sprintf(resStr, "%d", (int)extensionValue);
-                // itoa((int)extensionValue, resStr, 10);
+                // sprintf(resStr, "%d", (int)extensionValue);
+                itoa((int)extensionValue, resStr, 10);
                 res = resStr;
             }
             break;

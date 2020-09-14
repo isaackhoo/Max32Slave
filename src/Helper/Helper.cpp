@@ -10,8 +10,8 @@ namespace Helper
         static char val[4];
         val[0] = '\0';
 
-        sprintf(val, "%d", i);
-        // itoa(i, val, 10);
+        // sprintf(val, "%d", i);
+        itoa(i, val, 10);
 
         if (i < 10)
         {

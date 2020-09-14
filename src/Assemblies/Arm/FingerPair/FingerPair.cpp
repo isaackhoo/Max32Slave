@@ -123,8 +123,8 @@ char *FingerPair::run()
             static char result[DEFAULT_CHARARR_BLOCK_SIZE];
             result[0] = '\0';
 
-            sprintf(result, "%d", this->direction);
-            // itoa(this->direction, result, 10);
+            // sprintf(result, "%d", this->direction);
+            itoa(this->direction, result, 10);
             res = result;
 
             logger.out("Finger pair curr under min");

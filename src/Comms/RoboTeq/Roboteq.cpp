@@ -110,8 +110,8 @@ bool Roboteq::setDeceleration(int dec)
     static char decStr[DEFAULT_CHARARR_BLOCK_SIZE];
     decStr[0] = '\0';
 
-    sprintf(decStr, "%d", dec);
-    // itoa(dec, decStr, 10);
+    // sprintf(decStr, "%d", dec);
+    itoa(dec, decStr, 10);
     return this->setDeceleration(decStr);
 };
 
@@ -131,8 +131,8 @@ bool Roboteq::setAccleration(int acc)
     static char accStr[DEFAULT_CHARARR_BLOCK_SIZE];
     accStr[0] = '\0';
 
-    sprintf(accStr, "%d", acc);
-    // itoa(acc, accStr, 10);
+    // sprintf(accStr, "%d", acc);
+    itoa(acc, accStr, 10);
     return this->setDeceleration(accStr);
 };
 
@@ -150,8 +150,8 @@ bool Roboteq::setSpeedPercent(int perc)
     static char spdStr[DEFAULT_CHARARR_BLOCK_SIZE];
     spdStr[0] = '\0';
 
-    sprintf(spdStr, "%d", perc);
-    // itoa(perc, spdStr, 10);
+    // sprintf(spdStr, "%d", perc);
+    itoa(perc, spdStr, 10);
 
     static char speedCmd[DEFAULT_CHARARR_BLOCK_SIZE];
     strcpy(speedCmd, SPEED_MOVE);
@@ -171,8 +171,8 @@ bool Roboteq::setRelativePosition(int relativeCount)
     static char rposStr[DEFAULT_CHARARR_BLOCK_SIZE];
     rposStr[0] = '\0';
 
-    sprintf(rposStr, "%d", relativeCount);
-    // itoa(relativeCount, rposStr, 10);
+    // sprintf(rposStr, "%d", relativeCount);
+    itoa(relativeCount, rposStr, 10);
 
     static char rposCmd[DEFAULT_CHARARR_BLOCK_SIZE];
     strcpy(rposCmd, PR_MOVE);
@@ -191,8 +191,8 @@ bool Roboteq::setPositionCount(int count)
     static char cposStr[DEFAULT_CHARARR_BLOCK_SIZE];
     cposStr[0] = '\0';
 
-    sprintf(cposStr, "%d", count);
-    // itoa(count, cposStr, 10);
+    // sprintf(cposStr, "%d", count);
+    itoa(count, cposStr, 10);
 
     static char cposCmd[DEFAULT_CHARARR_BLOCK_SIZE];
     strcpy(cposCmd, P_MOVE);

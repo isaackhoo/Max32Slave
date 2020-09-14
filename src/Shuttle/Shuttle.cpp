@@ -224,8 +224,8 @@ void Shuttle::run()
             // convert percentage to string
             static char percentageStr[DEFAULT_CHARARR_BLOCK_SIZE];
             percentageStr[0] = '\0';
-            sprintf(percentageStr, "%d", percentage);
-            // itoa(percentage, percentageStr, 10);
+            // sprintf(percentageStr, "%d", percentage);
+            itoa(percentage, percentageStr, 10);
             res = percentageStr;
         }
         break;
@@ -323,8 +323,8 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
         readVal = scanDirection * activeSensor->aRead();
 
         // feedback to master scan result
-        sprintf(readValStr, "%d", (int)readVal);
-        // itoa((int)readVal, readValStr, 10);
+        // sprintf(readValStr, "%d", (int)readVal);
+        itoa((int)readVal, readValStr, 10);
         this->feedbackStepCompletion(readValStr);
 
         break;
