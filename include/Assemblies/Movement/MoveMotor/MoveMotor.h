@@ -73,6 +73,7 @@ private:
     unsigned int movementStartMillis;
     int lastMoveSpeed;
     bool movementComplete;
+    bool isFirstSlotholeRead;
     bool isPreparingStop;
     bool hasStopped;
     unsigned int stoppedMillis;

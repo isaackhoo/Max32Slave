@@ -293,7 +293,9 @@ void Shuttle::onCommand(ENUM_MASTER_ACTIONS action, const char *inst)
     }
     case READ_BIN_SENSOR:
     {
-        char readValStr[DEFAULT_CHARARR_BLOCK_SIZE];
+        static char readValStr[DEFAULT_CHARARR_BLOCK_SIZE];
+        readValStr[0] = '\0';
+
         double readVal;
         BinSensor *activeSensor = NULL;
         ENUM_EXTENSION_DIRECTION scanDirection;

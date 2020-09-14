@@ -37,7 +37,7 @@ public:
 
 private:
     int messageLength;
-    char str[DEFAULT_CHARARR_BLOCK_SIZE]; // return value for toString mtd
+    char str[DEFAULT_CHARARR_BLOCK_SIZE * 2]; // return value for toString mtd
 
     char uuid[DEFAULT_CHARARR_BLOCK_SIZE / 2];
     ENUM_MASTER_ACTIONS action;

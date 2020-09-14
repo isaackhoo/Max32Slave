@@ -57,7 +57,10 @@ char *ArmMotor::run()
             {
                 // feed back that arm has reached position
                 static char armCount[DEFAULT_CHARARR_BLOCK_SIZE];
-                sprintf(armCount, "%d", directionalCount);
+                armCount[0] = '\0';
+                
+                // sprintf(armCount, "%d", directionalCount);
+                itoa(directionalCount, armCount, 10);
                 res = armCount;
                 logger.logCpy("Arm position ");
                 logger.logCat(armCount);
@@ -89,7 +92,10 @@ void ArmMotor::home()
     this->isHoming = true;
 
     char homeCmd[DEFAULT_CHARARR_BLOCK_SIZE];
-    sprintf(homeCmd, "%d", ARM_POSITION_COUNT_HOME);
+    homeCmd[0] = '\0';
+
+    // sprintf(homeCmd, "%d", ARM_POSITION_COUNT_HOME);
+    itoa(ARM_POSITION_COUNT_HOME, homeCmd, 10);
     this->moveTo(homeCmd);
 };
 

@@ -5,8 +5,11 @@ namespace Helper
     char *GET_TWO_DIGIT_STRING(int i)
     {
         static char out[4];
+        out[0] = '\0';
         // get c str of value
-        char val[4];
+        static char val[4];
+        val[0] = '\0';
+
         sprintf(val, "%d", i);
         // itoa(i, val, 10);
 

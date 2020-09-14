@@ -20,6 +20,7 @@ char *EStop::run()
     {
         double extensionValue = this->aRead();
         static char resStr[DEFAULT_CHARARR_BLOCK_SIZE];
+        resStr[0] = '\0';
 
         switch (this->lastInstructions)
         {
