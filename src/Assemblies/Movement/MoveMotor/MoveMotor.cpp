@@ -276,22 +276,22 @@ char *MoveMotor::run()
         // this is to capture events where the shuttle overruns the target slothole
         // if it has, stop the shuttle and return an error message
         bool shouldContinue = true;
-        if (this->currentMovementDirection == FORWARD)
-        {
-            // count should be less than target slothole
-            if (this->readingSensor->getCount() > this->targetSlothole)
-            {
-                shouldContinue = false;
-            }
-        }
-        else if (this->currentMovementDirection == REVERSE)
-        {
-            // count should be greater than target slothole
-            if (this->readingSensor->getCount() < this->targetSlothole)
-            {
-                shouldContinue = false;
-            }
-        }
+        // if (this->currentMovementDirection == FORWARD)
+        // {
+        //     // count should be less than target slothole
+        //     if (this->readingSensor->getCount() > this->targetSlothole)
+        //     {
+        //         shouldContinue = false;
+        //     }
+        // }
+        // else if (this->currentMovementDirection == REVERSE)
+        // {
+        //     // count should be greater than target slothole
+        //     if (this->readingSensor->getCount() < this->targetSlothole)
+        //     {
+        //         shouldContinue = false;
+        //     }
+        // }
 
         if (!shouldContinue)
         {

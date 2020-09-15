@@ -119,14 +119,20 @@ namespace Helper
     {
         // creates a 5 digit alphanumeric c-str
         static char uuid[6];
+        uuid[0] = '\0';
         randomSeed(analogRead(millis()));
 
         for (int i = 0; i < 5; ++i)
         {
-            byte randVal = random(0, 36);
-            char letter = randVal + 'a';
-            if (randVal >= 26)
-                letter = (randVal - 26) + '0';
+            byte randVal;
+            char letter = '\0';
+            while (!isalnum(letter))
+            {
+                randVal = random(0, 36);
+                if (randVal >= 26)
+                    letter = (randVal - 26) + '0';
+                letter = randVal + 'a';
+            }
             uuid[i] = letter;
         }
         uuid[6] = '\0';
