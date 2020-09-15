@@ -167,139 +167,109 @@ char *MoveMotor::run()
 {
     char *res = NULL;
 
-    MoveSensor *altSensor = this->readingSensor == this->leadingSensor ? this->trailingSensor : this->leadingSensor;
-
-    // ensure that the other senor does not trigger an IN_HOLE event before reading sensor does an OUT_HOLE
-    // run this only during movement
-    // if (!this->isFirstSlotholeRead && !this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
-
-    // ignore checking until after clearing the slothole shuttle started from
-    if (!this->isFirstSlotholeRead && altSensor->run(IN_HOLE))
+    if (millis() - this->movementStartMillis <= this->movementTimeoutDuration)
     {
-        logger.errOut("Alt inhole pre-reading");
-        logger.logCpy(altSensor == this->leadingSensor ? "L: " : "T: ");
-        logger.logCat("L ");
-        logger.logCat(this->leadingSensor->getCount());
-        logger.logCat(" T ");
-        logger.logCat(this->trailingSensor->getCount());
-        logger.errOut();
-        // update the count of the missed reading sensor
-        this->readingSensor->setCounter(this->readingSensor->getCount() + (this->currentMovementDirection * 1));
-        // run the out-hole event of the sensor that missed its reading
-        if (this->getMode() == SPEED)
-        {
-            if (this->readingSensor == this->leadingSensor)
-                this->onSpeedLeadOutHoleEvt();
-            else if (this->readingSensor == this->trailingSensor)
-                this->onSpeedTrailOutHoleEvt();
-        }
-        else if (this->getMode() == R_POSITION)
-        {
-            if (this->readingSensor == this->leadingSensor)
-                this->onCreepLeadOutHoleEvt();
-            else if (this->readingSensor == this->trailingSensor)
-                this->onCreepTrailOutHoleEvt();
-        }
 
-        // toggle the reading sensor
-        this->toggleReadingSensor();
-        // perform in hole event
-        if (this->getMode() == SPEED)
-        {
-            if (this->readingSensor == this->leadingSensor)
-                this->onSpeedLeadInHoleEvt();
-            else if (this->readingSensor == this->trailingSensor)
-                this->onSpeedTrailInHoleEvt();
-        }
-        else if (this->getMode() == R_POSITION)
-        {
-            if (this->readingSensor == this->leadingSensor)
-                this->onCreepLeadInHoleEvt();
-            else if (this->readingSensor == this->trailingSensor)
-                this->onCreepTrailInHoleEvt();
-        }
-    }
+        MoveSensor *altSensor = this->readingSensor == this->leadingSensor ? this->trailingSensor : this->leadingSensor;
 
-    // run reading sensor normally
-    switch (this->readingSensor->run())
-    {
-    case IN_HOLE:
-    {
-        // this->readingSensor == this->trailingSensor ? logger.logCpy("T ") : logger.logCpy("L ");
-        // logger.logCat("In-hole ");
-        // logger.logCat(this->readingSensor->getCount());
-        // logger.out();
+        // ensure that the other senor does not trigger an IN_HOLE event before reading sensor does an OUT_HOLE
+        // run this only during movement
+        // if (!this->isFirstSlotholeRead && !this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
 
-        switch (this->getMode())
+        // ignore checking until after clearing the slothole shuttle started from
+        if (!this->isFirstSlotholeRead && altSensor->run(IN_HOLE))
         {
-        case SPEED:
-        {
-            if (this->readingSensor == this->leadingSensor)
+            logger.errOut("Alt inhole pre-reading");
+            logger.logCpy(altSensor == this->leadingSensor ? "L: " : "T: ");
+            logger.logCat("L ");
+            logger.logCat(this->leadingSensor->getCount());
+            logger.logCat(" T ");
+            logger.logCat(this->trailingSensor->getCount());
+            logger.errOut();
+            // update the count of the missed reading sensor
+            this->readingSensor->setCounter(this->readingSensor->getCount() + (this->currentMovementDirection * 1));
+            // run the out-hole event of the sensor that missed its reading
+            if (this->getMode() == SPEED)
             {
-                this->onSpeedLeadInHoleEvt();
+                if (this->readingSensor == this->leadingSensor)
+                    this->onSpeedLeadOutHoleEvt();
+                else if (this->readingSensor == this->trailingSensor)
+                    this->onSpeedTrailOutHoleEvt();
             }
-            else if (this->readingSensor == this->trailingSensor)
+            else if (this->getMode() == R_POSITION)
             {
-                this->onSpeedTrailInHoleEvt();
+                if (this->readingSensor == this->leadingSensor)
+                    this->onCreepLeadOutHoleEvt();
+                else if (this->readingSensor == this->trailingSensor)
+                    this->onCreepTrailOutHoleEvt();
+            }
+
+            // toggle the reading sensor
+            this->toggleReadingSensor();
+            // perform in hole event
+            if (this->getMode() == SPEED)
+            {
+                if (this->readingSensor == this->leadingSensor)
+                    this->onSpeedLeadInHoleEvt();
+                else if (this->readingSensor == this->trailingSensor)
+                    this->onSpeedTrailInHoleEvt();
+            }
+            else if (this->getMode() == R_POSITION)
+            {
+                if (this->readingSensor == this->leadingSensor)
+                    this->onCreepLeadInHoleEvt();
+                else if (this->readingSensor == this->trailingSensor)
+                    this->onCreepTrailInHoleEvt();
+            }
+        }
+
+        // run reading sensor normally
+        switch (this->readingSensor->run())
+        {
+        case IN_HOLE:
+        {
+            switch (this->getMode())
+            {
+            case SPEED:
+            {
+                if (this->readingSensor == this->leadingSensor)
+                {
+                    this->onSpeedLeadInHoleEvt();
+                }
+                else if (this->readingSensor == this->trailingSensor)
+                {
+                    this->onSpeedTrailInHoleEvt();
+                }
+                break;
+            }
+            case R_POSITION:
+            {
+                if (this->readingSensor == this->leadingSensor)
+                {
+                    this->onCreepLeadInHoleEvt();
+                }
+                else if (this->readingSensor == this->trailingSensor)
+                {
+                    this->onCreepTrailInHoleEvt();
+                }
+                break;
+            }
+            default:
+                break;
             }
             break;
         }
-        case R_POSITION:
+        case OUT_HOLE:
         {
-            if (this->readingSensor == this->leadingSensor)
-            {
-                this->onCreepLeadInHoleEvt();
-            }
-            else if (this->readingSensor == this->trailingSensor)
-            {
-                this->onCreepTrailInHoleEvt();
-            }
-            break;
-        }
-        default:
-            break;
-        }
-        break;
-    }
-    case OUT_HOLE:
-    {
-        // update sensor count
-        this->readingSensor->setCounter(this->readingSensor->getCount() + (this->currentMovementDirection * 1));
+            // update sensor count
+            this->readingSensor->setCounter(this->readingSensor->getCount() + (this->currentMovementDirection * 1));
 
-        // log out-hole event
-        this->readingSensor == this->trailingSensor ? logger.logCpy("T ") : logger.logCpy("L ");
-        logger.logCat("out-hole ");
-        logger.logCat(this->readingSensor->getCount());
-        logger.out();
+            // log out-hole event
+            this->readingSensor == this->trailingSensor ? logger.logCpy("T ") : logger.logCpy("L ");
+            logger.logCat("out-hole ");
+            logger.logCat(this->readingSensor->getCount());
+            logger.out();
 
-        // check that shuttle should event be moving
-        // this is to capture events where the shuttle overruns the target slothole
-        // if it has, stop the shuttle and return an error message
-        bool shouldContinue = true;
-        // if (this->currentMovementDirection == FORWARD)
-        // {
-        //     // count should be less than target slothole
-        //     if (this->readingSensor->getCount() > this->targetSlothole)
-        //     {
-        //         shouldContinue = false;
-        //     }
-        // }
-        // else if (this->currentMovementDirection == REVERSE)
-        // {
-        //     // count should be greater than target slothole
-        //     if (this->readingSensor->getCount() < this->targetSlothole)
-        //     {
-        //         shouldContinue = false;
-        //     }
-        // }
-
-        if (!shouldContinue)
-        {
-            res = NAKSTR "Shuttle over ran slothole";
-            this->immediateStop();
-        }
-        else
-        {
             // determine action based on mode
             switch (this->getMode())
             {
@@ -335,90 +305,99 @@ char *MoveMotor::run()
 
             // toggle reading sensor
             this->toggleReadingSensor();
-        } // end check to continue
+            break;
+        }
+        case NO_CHANGE:
+        default:
+            break;
+        }
 
-        break;
-    }
-    case NO_CHANGE:
-    default:
-        break;
-    }
-
-    // look for RPM event
-    if (this->getMode() == SPEED && !this->movementComplete && this->isPreparingStop && this->available())
-    {
-        int rpm = this->getRoboteqFeedback();
-
-        if (rpm != INT16_MIN && rpm <= MIN_SPEED_RPM)
+        // look for RPM event
+        if (this->getMode() == SPEED && !this->movementComplete && this->isPreparingStop && this->available())
         {
-            // shuttle fell below min rpm speed. change modes
-            // check trailing sensor should be in hole
-            this->trailingSensor->dRead();
+            int rpm = this->getRoboteqFeedback();
 
-            if (this->trailingSensor->getLastReadVal() == IN_HOLE)
+            if (rpm != INT16_MIN && rpm <= MIN_SPEED_RPM)
             {
-                logger.out("T ended in hole");
-                this->movementComplete = true;
-            }
-            else
-            {
-                // trailing sensor out of hole
-                logger.out("changing to creep mode");
-                this->setMode(R_POSITION);
+                // shuttle fell below min rpm speed. change modes
+                // check trailing sensor should be in hole
+                this->trailingSensor->dRead();
 
-                if (this->trailingSensor->getCount() == this->targetSlothole + (this->currentMovementDirection * 1))
+                if (this->trailingSensor->getLastReadVal() == IN_HOLE)
                 {
-                    // shuttle exceeded slothole
-                    logger.out("reversing shuttle creep direction");
-                    // reverse movement
-                    this->shouldReverseCreep = true;
-                    this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+                    logger.out("T ended in hole");
+
+                    // switch to creep mode to lock shuttle in place
+                    logger.out("Locking shuttle in position mode");
+                    this->setMode(R_POSITION);
+
+                    this->movementComplete = true;
+                }
+                else
+                {
+                    // trailing sensor out of hole
+                    logger.out("changing to creep mode");
+                    this->setMode(R_POSITION);
+
+                    if (this->trailingSensor->getCount() == this->targetSlothole + (this->currentMovementDirection * 1))
+                    {
+                        // shuttle exceeded slothole
+                        logger.out("reversing shuttle creep direction");
+                        // reverse movement
+                        this->shouldReverseCreep = true;
+                        this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+                    }
+                }
+            };
+        };
+
+        // continue reads for rpm
+        if (this->getMode() == SPEED && !this->movementComplete && this->isPreparingStop && !this->available())
+        {
+            if (millis() - this->getLastQueryMillis() >= RPM_REQ_INTERVAL)
+            {
+                // continue reading
+                this->requestRpm();
+            }
+        }
+
+        // look for creep event
+        if (this->getMode() == R_POSITION && !this->movementComplete)
+        {
+            if (this->creepCount < DEFAULT_MAX_CREEPS)
+            {
+                // disengage brakes
+                if (this->lastCreepMillis == 0)
+                    this->disengageBrake();
+
+                // creep shuttle forward every delay
+                if (millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
+                {
+                    // creep shuttle
+                    this->setRelativePosition(this->currentMovementDirection * CREEP_VALUE);
+
+                    // update creep count
+                    this->creepCount += 1;
+
+                    // update last creep millis
+                    this->lastCreepMillis = millis();
                 }
             }
+            else
+                res = NAKSTR "Max creeps reached";
         };
-    };
 
-    // continue reads for rpm
-    if (this->getMode() == SPEED && !this->movementComplete && this->isPreparingStop && !this->available())
-    {
-        if (millis() - this->getLastQueryMillis() >= RPM_REQ_INTERVAL)
+        // look for movement complete event
+        if (this->movementComplete)
         {
-            // continue reading
-            this->requestRpm();
+            res = this->createSlotholeArriveSuccessStr();
         }
     }
-
-    // look for creep event
-    if (this->getMode() == R_POSITION && !this->movementComplete)
+    else
     {
-        if (this->creepCount < DEFAULT_MAX_CREEPS)
-        {
-            // disengage brakes
-            if (this->lastCreepMillis == 0)
-                this->disengageBrake();
-
-            // creep shuttle forward every delay
-            if (millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
-            {
-                // creep shuttle
-                this->setRelativePosition(this->currentMovementDirection * CREEP_VALUE);
-
-                // update creep count
-                this->creepCount += 1;
-
-                // update last creep millis
-                this->lastCreepMillis = millis();
-            }
-        }
-        else
-            res = NAKSTR "Max creeps reached";
+        this->immediateStop();
+        res = NAKSTR "Movement timed out";
     };
-
-    // look for movement complete event
-    if (this->movementComplete)
-    {
-        res = this->createSlotholeArriveSuccessStr();
-    }
 
     return res;
 };
@@ -485,14 +464,18 @@ bool MoveMotor::moveTo(const char *slothole)
     // determine slothole spread
     int difference = abs(this->currentSlothole - this->targetSlothole);
 
+    // determine timeout duration for movement
+    this->movementTimeoutDuration = this->calcMovementTimeoutDuration(difference);
+
+    // set movement start millis
+    this->movementStartMillis = millis();
+
+    // log out movement
     logger.logCpy("Moving to slothole ");
     logger.logCat(this->targetSlothole);
     logger.logCat(" from ");
     logger.logCat(this->currentSlothole);
     logger.out();
-
-    // set movement start millis
-    this->movementStartMillis = millis();
 
     // start moving shuttle
     this->updateMoveSpeed(difference);
@@ -566,6 +549,7 @@ void MoveMotor::initializeMovementVariables()
     // initialize movement control variables
     this->movementComplete = false;
     this->movementStartMillis = 0;
+    this->movementTimeoutDuration = 0;
 
     // initialize speed movement variables
     this->lastMoveSpeed = 0;
@@ -578,6 +562,25 @@ void MoveMotor::initializeMovementVariables()
     this->shouldReverseCreep = false;
     this->creepCount = 0;
     this->lastCreepMillis = 0;
+};
+
+unsigned int MoveMotor::calcMovementTimeoutDuration(int diff)
+{
+    int multiplier = 1;
+
+    if (diff >= 22)
+        multiplier = TIMEOUT_MULTIPLIER_5;
+    else if (diff >= 14)
+        multiplier = TIMEOUT_MULTIPLIER_4;
+    else if (diff >= 7)
+        multiplier = TIMEOUT_MULTIPLIER_3;
+    else if (diff >= 2)
+        multiplier = TIMEOUT_MULTIPLIER_2;
+    else
+        multiplier = TIMEOUT_MULTIPLIER_1;
+
+    // get timeout duration
+    return (unsigned int)(multiplier * MOVEMENT_TIMEOUT_PER_SLOTHOLE * diff);
 };
 
 void MoveMotor::updateMoveSpeed(int diff)
@@ -608,6 +611,11 @@ void MoveMotor::updateMoveSpeed(int diff)
         this->setSpeedPercent(speed);
         this->lastMoveSpeed = speed;
     }
+};
+
+void MoveMotor::updateCurrentSlothole(int slothole)
+{
+    this->currentSlothole = slothole;
 };
 
 void MoveMotor::toggleReadingSensor(MoveSensor *sensor)
@@ -642,14 +650,14 @@ void MoveMotor::onSpeedTrailInHoleEvt()
     if (this->trailingSensor->getCount() == this->targetSlothole)
     {
         // trailing sensor is in last slothole
-        this->immediateStop();
+        this->heavyStop();
     }
 };
 
 void MoveMotor::onSpeedLeadOutHoleEvt()
 {
     // update shuttle position
-    this->currentSlothole = this->leadingSensor->getCount();
+    this->updateCurrentSlothole(this->leadingSensor->getCount());
 };
 
 void MoveMotor::onSpeedTrailOutHoleEvt()
@@ -691,7 +699,7 @@ void MoveMotor::onCreepTrailInHoleEvt()
 void MoveMotor::onCreepLeadOutHoleEvt()
 {
     // update shuttle position
-    this->currentSlothole = this->leadingSensor->getCount();
+    this->updateCurrentSlothole(this->leadingSensor->getCount());
 };
 
 void MoveMotor::onCreepTrailOutHoleEvt()

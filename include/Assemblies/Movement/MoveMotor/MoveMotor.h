@@ -72,6 +72,7 @@ private:
 
     int targetSlothole;
     int currentSlothole;
+    unsigned int movementTimeoutDuration;
 
     unsigned int movementStartMillis;
     int lastMoveSpeed;
@@ -87,9 +88,9 @@ private:
 
 private:
     void initializeMovementVariables();
+    unsigned int calcMovementTimeoutDuration(int);
     void updateMoveSpeed(int);
-    // void determineLastSlotholeTimeoutDuration();
-    // bool onLastSlotholeArrival();
+    void updateCurrentSlothole(int);
 
     void toggleReadingSensor(MoveSensor *);
     void toggleReadingSensor();
