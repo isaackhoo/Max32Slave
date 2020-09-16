@@ -88,6 +88,11 @@ bool Roboteq::setMode(ENUM_ROBOTEQ_CONFIG mode)
         this->send(KP ARM_KP RBTQ_ENDSTR);
         this->send(KI ARM_KI RBTQ_ENDSTR);
         this->send(KD ARM_KD RBTQ_ENDSTR);
+        // update arm accleration and deceleration
+        this->setAccleration(ARM_ACC);
+        this->setDeceleration(ARM_DEC);
+        // update arm speed
+        this->send(MSPD ARM_SPD RBTQ_ENDSTR);
     }
     default:
         break;
@@ -133,7 +138,7 @@ bool Roboteq::setAccleration(int acc)
 
     // sprintf(accStr, "%d", acc);
     itoa(acc, accStr, 10);
-    return this->setDeceleration(accStr);
+    return this->setAccleration(accStr);
 };
 
 ENUM_ROBOTEQ_CONFIG Roboteq::getMode()
