@@ -24,7 +24,8 @@
 #define ARM_ACC "7000"
 
 // speed settings
-#define MSPD "^MXRPM "
+#define MXRPM "^MXRPM "
+#define MVEL "^MVEL "
 #define ARM_SPD "2250"
 
 // PID settings

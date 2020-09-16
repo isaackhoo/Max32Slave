@@ -92,7 +92,8 @@ bool Roboteq::setMode(ENUM_ROBOTEQ_CONFIG mode)
         this->setAccleration(ARM_ACC);
         this->setDeceleration(ARM_DEC);
         // update arm speed
-        this->send(MSPD ARM_SPD RBTQ_ENDSTR);
+        this->send(MVEL ARM_SPD RBTQ_ENDSTR);
+        this->send(MXRPM ARM_SPD RBTQ_ENDSTR);
     }
     default:
         break;
