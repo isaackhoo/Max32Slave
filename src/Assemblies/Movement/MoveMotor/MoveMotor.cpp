@@ -399,13 +399,17 @@ char *MoveMotor::run()
         if (this->movementComplete && millis() - this->movementStoppedMillis >= MOVEMENT_COMPLETION_SETTLE_DELAY)
         {
             // check that shuttle is still in hole
-            if (this->trailingSensor->dRead() == IN_HOLE)
+            if (this->leadingSensor->dRead() == IN_HOLE || this->trailingSensor->dRead() == IN_HOLE)
             {
                 res = this->createSlotholeArriveSuccessStr();
             }
             else
             {
                 logger.out("repeat creeping");
+                // reverse movement
+                this->shouldReverseCreep = true;
+                this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+
                 // repeat creeping
                 this->movementComplete = false;
                 this->movementStoppedMillis = 0;
@@ -608,11 +612,22 @@ bool MoveMotor::updateMoveSpeed(int diff)
 {
     int speed = 0;
 
-    if (diff >= 22)
+    // if (diff >= 22)
+    //     speed = SPEED_5;
+    // else if (diff >= 14)
+    //     speed = SPEED_4;
+    // else if (diff >= 7)
+    //     speed = SPEED_3;
+    // else if (diff >= 2)
+    //     speed = SPEED_2;
+    // else
+    //     speed = SPEED_1;
+
+    if (diff >= 10)
         speed = SPEED_5;
-    else if (diff >= 14)
-        speed = SPEED_4;
     else if (diff >= 7)
+        speed = SPEED_4;
+    else if (diff >= 5)
         speed = SPEED_3;
     else if (diff >= 2)
         speed = SPEED_2;
@@ -685,7 +700,7 @@ bool MoveMotor::onSpeedTrailInHoleEvt()
     if (this->trailingSensor->getCount() == this->targetSlothole)
     {
         // trailing sensor is in last slothole
-        this->heavyStop();
+        this->immediateStop();
     }
     return true;
 };
@@ -711,7 +726,17 @@ bool MoveMotor::onSpeedTrailOutHoleEvt()
 
 bool MoveMotor::onCreepLeadInHoleEvt()
 {
-    // do nothing
+    if (this->leadingSensor->getCount() == this->targetSlothole && this->shouldReverseCreep)
+    {
+        // trailing sensor is in last slothole
+        this->immediateStop();
+
+        // change back the mode
+        this->setMode(SPEED);
+
+        // terminate movement
+        this->movementComplete = true;
+    }
     return true;
 };
 
