@@ -22,6 +22,7 @@ public:
     void switchLL();
 
     int readPwm();
+    int readLanes();
 
 private:
     DigitalComms lane1;

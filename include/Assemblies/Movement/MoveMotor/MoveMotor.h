@@ -67,6 +67,8 @@ private:
     MoveSensor *trailingSensor;
     MoveSensor *readingSensor;
 
+    ENUM_MOVEMENT_DIRECTION lastMovementDirection;
+    ENUM_MOVEMENT_DIRECTION originalMovementDirection;
     ENUM_MOVEMENT_DIRECTION currentMovementDirection;
 
     int targetSlothole;
@@ -80,10 +82,12 @@ private:
     bool isFirstSlotholeRead;
     bool isPreparingStop;
     bool hasStopped;
+    bool speedEndedInHole;
 
     bool shouldReverseCreep;
     int creepCount;
     unsigned int lastCreepMillis;
+    int repeatCreepingCount;
 
 private:
     void initializeMovementVariables();

@@ -49,6 +49,19 @@ int HBridge::readPwm()
     return this->pwm.dRead();
 };
 
+int HBridge::readLanes() {
+    int res = 0;
+
+    int res1 = this->lane1.dRead();
+    int res2 = this->lane2.dRead();
+
+    res = res1;
+    res *= 10;
+    res += res2;
+
+    return res;
+}
+
 // --------------------------------
 // HBRIDGE PRIVATE VARIABLES
 // --------------------------------

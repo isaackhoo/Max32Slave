@@ -160,6 +160,9 @@ MoveMotor::MoveMotor(HardwareSerial *ss, int dP1, int dP2, int brakeP1, int brak
     this->targetSlothole = DEFAULT_STARTING_SLOTHOLE;
     this->currentSlothole = DEFAULT_STARTING_SLOTHOLE;
 
+    this->lastMovementDirection = ENUM_MOVEMENT_DIRECTION::NOT_MOVING;
+    this->originalMovementDirection = ENUM_MOVEMENT_DIRECTION::NOT_MOVING;
+
     this->initializeMovementVariables();
 };
 
@@ -176,7 +179,7 @@ char *MoveMotor::run()
         // if (!this->isFirstSlotholeRead && !this->isPreparingStop && millis() - this->movementStartMillis >= ALT_SENSOR_READ_DELAY && altSensor->run(IN_HOLE))
 
         // ignore checking until after clearing the slothole shuttle started from
-        if (!this->isFirstSlotholeRead && altSensor->run(IN_HOLE))
+        if (this->isFirstSlotholeRead && altSensor->run(IN_HOLE))
         {
             logger.errOut("Alt inhole pre-reading");
             logger.logCpy(altSensor == this->leadingSensor ? "L: " : "T: ");
@@ -329,6 +332,7 @@ char *MoveMotor::run()
                 if (this->trailingSensor->getLastReadVal() == IN_HOLE)
                 {
                     logger.out("T ended in hole");
+                    this->speedEndedInHole = true;
 
                     // switch to creep mode to lock shuttle in place
                     this->setMode(R_POSITION);
@@ -369,20 +373,41 @@ char *MoveMotor::run()
             if (this->creepCount < DEFAULT_MAX_CREEPS)
             {
                 // disengage brakes
-                if (this->lastCreepMillis == 0)
+                if (this->brake.getIsEngaged())
                     this->disengageBrake();
 
-                // creep shuttle forward every delay
-                if (millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
+                // // creep shuttle forward every delay
+                // if (millis() - this->lastCreepMillis >= POSITION_CONTINUOUS_CREEP_DELAY)
+                // {
+                //     // creep shuttle
+                //     this->setRelativePosition(this->currentMovementDirection * CREEP_VALUE);
+
+                //     // update creep count
+                //     this->creepCount += 1;
+
+                //     // update last creep millis
+                //     this->lastCreepMillis = millis();
+                // }
+
+                if (millis() - this->lastCreepMillis >= RPM_REQ_INTERVAL)
                 {
-                    // creep shuttle
-                    this->setRelativePosition(this->currentMovementDirection * CREEP_VALUE);
+                    // request RPM
+                    this->requestRpm();
 
-                    // update creep count
-                    this->creepCount += 1;
+                    while (!this->available())
+                        ;
+                    int rpm = this->getRoboteqFeedback();
+                    if (rpm != INT16_MIN && rpm <= MIN_CREEP_RPM)
+                    {
+                        // rpm fell below. continue next creep
+                        this->setRelativePosition(this->currentMovementDirection * CREEP_VALUE);
 
-                    // update last creep millis
-                    this->lastCreepMillis = millis();
+                        // update creep count
+                        this->creepCount += 1;
+
+                        // update last creep millis
+                        this->lastCreepMillis = millis();
+                    }
                 }
             }
             else
@@ -402,13 +427,19 @@ char *MoveMotor::run()
             if (this->leadingSensor->dRead() == IN_HOLE || this->trailingSensor->dRead() == IN_HOLE)
             {
                 res = this->createSlotholeArriveSuccessStr();
+                // save last movement direction
+                this->lastMovementDirection = this->originalMovementDirection;
             }
             else
             {
-                logger.out("repeat creeping");
-                // reverse movement
-                this->shouldReverseCreep = true;
-                this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+                logger.out("Correction creeping");
+                this->repeatCreepingCount += 1;
+                if (!this->speedEndedInHole)
+                {
+                    // reverse movement
+                    this->shouldReverseCreep = true;
+                    this->currentMovementDirection = this->currentMovementDirection == FORWARD ? REVERSE : FORWARD;
+                }
 
                 // repeat creeping
                 this->movementComplete = false;
@@ -448,8 +479,11 @@ bool MoveMotor::moveTo(const char *slothole)
     if (direction == NOT_MOVING)
         return false;
     else
+    {
         // set direction of movement
         this->currentMovementDirection = direction;
+        this->originalMovementDirection = direction;
+    }
 
     // set movement motor mode
     this->setMode(ENUM_ROBOTEQ_CONFIG::SPEED);
@@ -464,6 +498,21 @@ bool MoveMotor::moveTo(const char *slothole)
     // get initial sensor readings
     this->frontSensor.dRead();
     this->rearSensor.dRead();
+
+    // check both sensors out hole event
+    if ((this->frontSensor.getLastReadVal() == OUT_HOLE && this->rearSensor.getLastReadVal() == OUT_HOLE))
+    {
+        logger.out("Both sensors started out-hole");
+        if (this->lastMovementDirection != ENUM_MOVEMENT_DIRECTION::NOT_MOVING && this->lastMovementDirection == this->originalMovementDirection)
+        {
+            logger.out("Activating alt sensor on first SH");
+            this->isFirstSlotholeRead = true;
+        }
+        else if (this->lastMovementDirection == ENUM_MOVEMENT_DIRECTION::NOT_MOVING)
+        {
+            this->isFirstSlotholeRead = false;
+        }
+    }
 
     // determine leading and trailing sensors
     switch (direction)
@@ -578,15 +627,17 @@ void MoveMotor::initializeMovementVariables()
 
     // initialize speed movement variables
     this->lastMoveSpeed = 0;
-    this->isFirstSlotholeRead = true;
+    this->isFirstSlotholeRead = false;
     this->isPreparingStop = false;
     this->hasStopped = false;
     this->movementStoppedMillis = DEFAULT_MOVEMENT_MILLIS;
+    this->speedEndedInHole = false;
 
     // initialize creep variables
     this->shouldReverseCreep = false;
     this->creepCount = 0;
     this->lastCreepMillis = 0;
+    this->repeatCreepingCount = 0;
 };
 
 unsigned int MoveMotor::calcMovementTimeoutDuration(int diff)
@@ -612,27 +663,27 @@ bool MoveMotor::updateMoveSpeed(int diff)
 {
     int speed = 0;
 
-    // if (diff >= 22)
-    //     speed = SPEED_5;
-    // else if (diff >= 14)
-    //     speed = SPEED_4;
-    // else if (diff >= 7)
-    //     speed = SPEED_3;
-    // else if (diff >= 2)
-    //     speed = SPEED_2;
-    // else
-    //     speed = SPEED_1;
-
-    if (diff >= 10)
+    if (diff >= 22)
         speed = SPEED_5;
-    else if (diff >= 7)
+    else if (diff >= 14)
         speed = SPEED_4;
-    else if (diff >= 5)
+    else if (diff >= 7)
         speed = SPEED_3;
     else if (diff >= 2)
         speed = SPEED_2;
     else
         speed = SPEED_1;
+
+    // if (diff >= 10)
+    //     speed = SPEED_5;
+    // else if (diff >= 7)
+    //     speed = SPEED_4;
+    // else if (diff >= 5)
+    //     speed = SPEED_3;
+    // else if (diff >= 2)
+    //     speed = SPEED_2;
+    // else
+    //     speed = SPEED_1;
 
     // implement movement direction
     speed *= this->currentMovementDirection;
@@ -718,8 +769,8 @@ bool MoveMotor::onSpeedTrailOutHoleEvt()
     // update movement speed
     res = this->updateMoveSpeed(abs(this->trailingSensor->getCount() - this->targetSlothole));
 
-    if (this->isFirstSlotholeRead)
-        this->isFirstSlotholeRead = false;
+    if (!this->isFirstSlotholeRead)
+        this->isFirstSlotholeRead = true;
 
     return res;
 };
@@ -728,7 +779,9 @@ bool MoveMotor::onCreepLeadInHoleEvt()
 {
     if (this->leadingSensor->getCount() == this->targetSlothole && this->shouldReverseCreep)
     {
-        // trailing sensor is in last slothole
+        if (this->repeatCreepingCount > 0)
+            delay((int)150 / this->repeatCreepingCount);
+        // leading sensor is in last slothole
         this->immediateStop();
 
         // change back the mode
@@ -745,6 +798,8 @@ bool MoveMotor::onCreepTrailInHoleEvt()
     // check for last slothole event
     if (this->trailingSensor->getCount() == this->targetSlothole)
     {
+        if (this->repeatCreepingCount > 0)
+            delay((int)150 / this->repeatCreepingCount);
         // trailing sensor is in last slothole
         this->immediateStop();
 

@@ -14,6 +14,11 @@ public:
 
     void engage();
     void disengage();
+
+    bool getIsEngaged();
+
+private:
+    bool isEngaged;
 };
 
 #endif
