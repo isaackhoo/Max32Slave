@@ -28,7 +28,6 @@
 #define SPEED_3 500
 #define SPEED_2 250
 #define SPEED_1 120
-#define ALT_SENSOR_READ_DELAY 250
 #define MIN_SPEED_RPM 0
 
 // creeping
@@ -37,6 +36,8 @@
 #define POSITION_CONTINUOUS_CREEP_DELAY 25
 #define DEFAULT_MAX_CREEPS 50
 #define MIN_CREEP_RPM 0
+#define MAX_REPEAT_CREEPS 2
+#define CREEP_BRAKE_DELAY 150
 
 namespace MoveMotorConstants
 {

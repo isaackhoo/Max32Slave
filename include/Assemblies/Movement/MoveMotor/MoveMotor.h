@@ -66,6 +66,7 @@ private:
     MoveSensor *leadingSensor;
     MoveSensor *trailingSensor;
     MoveSensor *readingSensor;
+    MoveSensor *altSensor;
 
     ENUM_MOVEMENT_DIRECTION lastMovementDirection;
     ENUM_MOVEMENT_DIRECTION originalMovementDirection;
@@ -73,21 +74,18 @@ private:
 
     int targetSlothole;
     int currentSlothole;
-    unsigned int movementTimeoutDuration;
+    int lastMoveSpeed;
 
+    unsigned int movementTimeoutDuration;
     unsigned int movementStartMillis;
     unsigned int movementStoppedMillis;
-    int lastMoveSpeed;
-    bool movementComplete;
-    bool isFirstSlotholeRead;
-    bool isPreparingStop;
-    bool hasStopped;
-    bool speedEndedInHole;
 
-    bool shouldReverseCreep;
+    bool movementComplete;
+    bool isPreparingStop;
+    
     int creepCount;
     unsigned int lastCreepMillis;
-    int repeatCreepingCount;
+    unsigned int creepTries;
 
 private:
     void initializeMovementVariables();
@@ -97,6 +95,8 @@ private:
 
     void toggleReadingSensor(MoveSensor *);
     void toggleReadingSensor();
+
+    bool updateSensorOutHoleCount(MoveSensor *);
 
     bool onSpeedLeadInHoleEvt();
     bool onSpeedTrailInHoleEvt();
@@ -108,7 +108,8 @@ private:
     bool onCreepLeadOutHoleEvt();
     bool onCreepTrailOutHoleEvt();
 
-    char *onSensorCountMismatch();
+    void onInHoleEvent(MoveSensor *);
+    void onOutHoleEvent(MoveSensor *);
 
     char *createSlotholeArriveSuccessStr();
 };
