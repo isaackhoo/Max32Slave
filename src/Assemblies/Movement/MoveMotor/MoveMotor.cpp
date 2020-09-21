@@ -223,13 +223,17 @@ bool MoveMotor::moveTo(const char *slothole)
     // set movement motor mode
     this->setMode(ENUM_ROBOTEQ_CONFIG::SPEED);
 
+    // prefix iniital readings
+    this->frontSensor.setLastReadVal(IN_HOLE);
+    this->rearSensor.setLastReadVal(IN_HOLE);
+
     // // reset sensor counts
     // this->frontSensor.setCounter(this->currentSlothole);
     // this->rearSensor.setCounter(this->currentSlothole);
 
     // get initial sensor readings
-    this->frontSensor.dRead();
-    this->rearSensor.dRead();
+    // this->frontSensor.dRead();
+    // this->rearSensor.dRead();
 
     // // check both sensors out hole event
     // if ((this->frontSensor.getLastReadVal() == OUT_HOLE && this->rearSensor.getLastReadVal() == OUT_HOLE))
@@ -780,14 +784,17 @@ void MoveMotor::disengageBrake()
 // --------------------------------
 void MoveMotor::initializeMovementVariables()
 {
+    // initialize control variables
+    this->lastMoveSpeed = 0;
+
     // initialize millis variables
     this->movementTimeoutDuration = 0;
-
-    // initialize movement control variables
-    this->lastMoveSpeed = 0;
-    this->movementComplete = false;
     this->movementStartMillis = millis();
     this->movementStoppedMillis = DEFAULT_MOVEMENT_MILLIS;
+
+    // initialize movement control variables
+    this->movementComplete = false;
+    this->hasTrailingReadFirst = false;
 
     // initialize speed movement variables
     this->isPreparingStop = false;
@@ -916,13 +923,20 @@ bool MoveMotor::onSpeedTrailInHoleEvt()
 bool MoveMotor::onSpeedLeadOutHoleEvt()
 {
     bool res;
-    res = this->updateSensorOutHoleCount(this->leadingSensor);
 
-    // stop shuttle if its the last slothole
-    if (this->leadingSensor->getCount() == this->targetSlothole)
+    if (!this->hasTrailingReadFirst)
+        // ignores leading sensor first outhole event if trailing sensor has not read yet
+        res = false;
+    else
     {
-        this->immediateStop();
-        this->isPreparingStop = true;
+        res = this->updateSensorOutHoleCount(this->leadingSensor);
+
+        // stop shuttle if its the last slothole
+        if (this->leadingSensor->getCount() == this->targetSlothole)
+        {
+            this->immediateStop();
+            this->isPreparingStop = true;
+        }
     }
 
     return res;
@@ -931,6 +945,10 @@ bool MoveMotor::onSpeedLeadOutHoleEvt()
 bool MoveMotor::onSpeedTrailOutHoleEvt()
 {
     bool res;
+
+    if (!this->hasTrailingReadFirst)
+        this->hasTrailingReadFirst = true;
+
     res = this->updateSensorOutHoleCount(this->trailingSensor);
     // update movement speed
     res = this->updateMoveSpeed(abs(this->trailingSensor->getCount() - this->targetSlothole));

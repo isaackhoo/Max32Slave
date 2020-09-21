@@ -21,6 +21,15 @@ void DigitalComms::init(int pin, int io)
     pinMode(pin, io);
 };
 
+bool DigitalComms::setLastReadVal(int val)
+{
+    if (val != 0 && val != 1)
+        return false;
+
+    this->lastReadVal = val;
+    return true;
+};
+
 int DigitalComms::dRead()
 {
     this->lastReadVal = digitalRead(this->getPin());

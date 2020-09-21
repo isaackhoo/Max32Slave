@@ -81,8 +81,10 @@ private:
     unsigned int movementStoppedMillis;
 
     bool movementComplete;
+    bool hasTrailingReadFirst;
+
     bool isPreparingStop;
-    
+
     int creepCount;
     unsigned int lastCreepMillis;
     unsigned int creepTries;

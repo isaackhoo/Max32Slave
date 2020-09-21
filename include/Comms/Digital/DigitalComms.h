@@ -12,6 +12,8 @@ public:
     DigitalComms(int, int);
     void init(int, int);
 
+    bool setLastReadVal(int);
+
     int dRead();
     void dWriteHigh();
     void dWriteLow();
