@@ -22,6 +22,9 @@
 #define TIMEOUT_MULTIPLIER_2 5
 #define TIMEOUT_MULTIPLIER_1 10
 
+// RPM REQUEST
+#define RPM_REQ_INTERVAL 200
+
 // speed
 #define SPEED_5 1000
 #define SPEED_4 750
@@ -31,13 +34,12 @@
 #define MIN_SPEED_RPM 0
 
 // creeping
-#define CREEP_VALUE 1
-#define RPM_REQ_INTERVAL 200
+#define CREEP_VALUE 2
 #define POSITION_CONTINUOUS_CREEP_DELAY 25
 #define DEFAULT_MAX_CREEPS 50
-#define MIN_CREEP_RPM 0
+#define MIN_CREEP_RPM 100
 #define MAX_REPEAT_CREEPS 2
-#define CREEP_BRAKE_DELAY 150
+#define CREEP_BRAKE_DELAY 100
 
 namespace MoveMotorConstants
 {
