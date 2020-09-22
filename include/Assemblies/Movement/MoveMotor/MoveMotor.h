@@ -84,6 +84,9 @@ private:
     bool hasTrailingReadFirst;
 
     bool isPreparingStop;
+    bool leadStoppedOuthole;
+    bool speedComplete;
+    bool hasRequestedRPM;
 
     int creepCount;
     unsigned int lastCreepMillis;

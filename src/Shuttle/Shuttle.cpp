@@ -101,6 +101,9 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     // clear out current step
     this->currentStep = Num_Master_Actions_Enums;
 
+    // change motor mode
+    this->moveMotor.setMode(SPEED);
+
     // keep fingers
     this->rightFP.retract();
     this->leftFP.retract();
