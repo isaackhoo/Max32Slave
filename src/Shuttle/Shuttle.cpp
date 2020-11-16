@@ -169,7 +169,7 @@ void Shuttle::run()
             {
                 this->armHoming.startCheckingHome(res);
                 res = NULL;
-            }     
+            }
         }
         else
         {

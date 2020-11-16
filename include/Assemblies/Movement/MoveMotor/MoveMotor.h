@@ -103,6 +103,8 @@ private:
 
     bool updateSensorOutHoleCount(MoveSensor *);
 
+    bool isInBufferSlothole();
+
     bool onSpeedLeadInHoleEvt();
     bool onSpeedTrailInHoleEvt();
     bool onSpeedLeadOutHoleEvt();
