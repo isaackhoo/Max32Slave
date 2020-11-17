@@ -264,7 +264,10 @@ char *MoveMotor::run()
         // ------------------------------
         if (!this->speedComplete && this->altSensor->run(IN_HOLE))
         {
-            if (this->getMode() == SPEED)
+            if (this->altSensor->getCount() == DEFAULT_STARTING_SLOTHOLE) {
+                // do nothing
+            }
+            else if (this->getMode() == SPEED)
             {
                 logger.errOut("Alt sensor In-hole");
                 logger.logCpy(this->altSensor == this->leadingSensor ? "L: " : "T: ");
