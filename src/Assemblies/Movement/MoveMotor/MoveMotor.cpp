@@ -664,8 +664,10 @@ bool MoveMotor::onSpeedLeadInHoleEvt()
 bool MoveMotor::onSpeedTrailInHoleEvt()
 {
     // check for last slothole event
-    if (this->trailingSensor->getCount() == this->targetSlothole)
+    if (this->trailingSensor->getCount() == this->targetSlothole && this->trailingSensor->getCount() != DEFAULT_STARTING_SLOTHOLE)
+    {
         this->immediateStop();
+    }
     return true;
 };
 
