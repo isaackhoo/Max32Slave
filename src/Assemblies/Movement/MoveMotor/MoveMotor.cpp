@@ -534,7 +534,7 @@ char *MoveMotor::run()
         // ------------------------
         // Run Creep Events
         // ------------------------
-        if (this->getMode() == R_POSITION)
+        if (!this->movementComplete && this->getMode() == R_POSITION)
         {
             // check if shuttle can still creep
             if (this->creepCount > DEFAULT_MAX_CREEPS)
