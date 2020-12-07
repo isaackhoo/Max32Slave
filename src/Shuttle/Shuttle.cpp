@@ -105,8 +105,10 @@ bool Shuttle::init(HardwareSerial *armSerial, HardwareSerial *moveSerial)
     this->moveMotor.setMode(SPEED);
 
     // keep fingers
-    this->rightFP.retract();
-    this->leftFP.retract();
+    // this->rightFP.retract();
+    // this->leftFP.retract();
+    this->rightFP.extend();
+    this->leftFP.extend();
 
     // home arm
     this->armMotor.home();

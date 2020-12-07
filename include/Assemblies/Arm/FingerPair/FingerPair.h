@@ -73,6 +73,7 @@ private:
 private:
     void initializeFingersBeforeMove();
     ENUM_FINGER_MOVEMENT lastMovement;
+    ENUM_FINGER_STATE currentFingerState;
 };
 
 #endif

@@ -129,9 +129,21 @@ char *FingerPair::run()
 
             logger.out("Finger pair curr under min");
 
+            // if any finger managed to start movement
+            if (this->frontFinger.getIsMovementStarted() || this->rearFinger.getIsMovementStarted())
+            {
+                this->lastMovement == FINGER_EXTENSION ? this->currentFingerState = FINGER_EXTENDED : this->currentFingerState = FINGER_RETRACTED;
+            }
+
             // if any finger didnt manage to start movement
             if (!this->frontFinger.getIsMovementStarted() || !this->rearFinger.getIsMovementStarted())
-                res = NAKSTR "Finger failed to move";
+            {
+                // check if finger has alrdy been successfully extended/retracted previously
+                if (this->lastMovement == FINGER_EXTENSION && this->currentFingerState == FINGER_RETRACTED || this->lastMovement == FINGER_RETRACTION && this->currentFingerState == FINGER_EXTENDED)
+                {                
+                    res = NAKSTR "Finger failed to move";
+                }
+            }
         }
     }
     else if (millisDiff > FINGER_TIMEOUT_DURATION)

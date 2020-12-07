@@ -16,6 +16,12 @@ namespace FingerPairConstants
         FINGER_EXTENSION,
         FINGER_RETRACTION
     };
+
+    enum ENUM_FINGER_STATE
+    {
+        FINGER_EXTENDED,
+        FINGER_RETRACTED
+    };
 };
 
 #endif

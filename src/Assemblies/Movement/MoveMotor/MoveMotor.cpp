@@ -567,6 +567,11 @@ char *MoveMotor::run()
         {
             if ((ENUM_MOTORSENSOR_READING)this->leadingSensor->dRead() == IN_HOLE)
             {
+                logger.out("creepCount = ");
+                char CREEP_COUNT_BUFFER[DEFAULT_CHARARR_BLOCK_SIZE];
+                CREEP_COUNT_BUFFER[0] = '\0';
+                itoa((int)creepCount, CREEP_COUNT_BUFFER, 10);
+                logger.out(CREEP_COUNT_BUFFER);
                 // movement ended successfully
                 // set trailing sensor count to leading sensor count
                 this->trailingSensor->setCounter(this->leadingSensor->getCount());
@@ -579,6 +584,11 @@ char *MoveMotor::run()
                 // shuttle sensor is not in hole. change to creep mode
                 if (this->creepTries > MAX_REPEAT_CREEPS)
                 {
+                    logger.out("creepCount = ");
+                    char CREEP_COUNT_BUFFER[DEFAULT_CHARARR_BLOCK_SIZE];
+                    CREEP_COUNT_BUFFER[0] = '\0';
+                    itoa((int)creepCount, CREEP_COUNT_BUFFER, 10);
+                    logger.out(CREEP_COUNT_BUFFER);
                     res = NAKSTR "Max creep retries";
                 }
                 else
